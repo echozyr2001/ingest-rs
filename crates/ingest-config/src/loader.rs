@@ -190,6 +190,14 @@ mod tests {
 
     #[test]
     fn test_config_loader_load_with_file() {
+        let _lock = ENV_MUTEX.lock().unwrap();
+
+        // Clean up any existing environment variables first
+        unsafe {
+            std::env::remove_var("INNGEST_DATABASE_HOST");
+            std::env::remove_var("INNGEST_SERVER_PORT");
+        }
+
         let mut temp_file = NamedTempFile::with_suffix(".toml").unwrap();
         writeln!(
             temp_file,
