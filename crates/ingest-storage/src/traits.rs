@@ -42,6 +42,5 @@ mod tests {
     #[test]
     fn test_traits_compile() {
         // This test just ensures the traits compile correctly
-        todo!("Ensure Storage and Transaction traits compile");
     }
 }

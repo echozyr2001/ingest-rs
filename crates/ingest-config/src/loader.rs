@@ -44,8 +44,35 @@ impl ConfigLoader {
             .set_default("redis.url", "redis://localhost:6379")?;
         self.builder = self.builder.set_default("server.host", "0.0.0.0")?;
         self.builder = self.builder.set_default("server.port", 8080)?;
+        self.builder = self.builder.set_default("server.graceful_shutdown", true)?;
         self.builder = self.builder.set_default("logging.level", "info")?;
         self.builder = self.builder.set_default("logging.format", "json")?;
+        self.builder = self.builder.set_default("logging.structured", true)?;
+        self.builder = self
+            .builder
+            .set_default("logging.service_name", "inngest")?;
+        self.builder = self.builder.set_default("security.cors_enabled", true)?;
+        self.builder = self
+            .builder
+            .set_default("security.cors_origins", vec!["*"])?;
+        self.builder = self.builder.set_default("security.rate_limiting", false)?;
+        self.builder = self.builder.set_default("security.rate_limit_rpm", 1000)?;
+        self.builder = self.builder.set_default("features.tracing_enabled", true)?;
+        self.builder = self.builder.set_default("features.metrics_enabled", true)?;
+        self.builder = self
+            .builder
+            .set_default("features.experimental_features", false)?;
+        self.builder = self.builder.set_default("features.debug_mode", false)?;
+        self.builder = self
+            .builder
+            .set_default("features.batch_processing", true)?;
+        self.builder = self.builder.set_default("features.caching_enabled", true)?;
+        self.builder = self
+            .builder
+            .set_default("features.webhooks_enabled", true)?;
+        self.builder = self
+            .builder
+            .set_default("features.rate_limiting_enabled", false)?;
 
         // Add configuration files
         for file_path in &self.files {
@@ -111,6 +138,12 @@ mod tests {
 
     #[test]
     fn test_config_loader_load_defaults() {
+        // Clean up any existing environment variables
+        unsafe {
+            env::remove_var("INNGEST_DATABASE_HOST");
+            env::remove_var("INNGEST_SERVER_PORT");
+        }
+
         let actual = ConfigLoader::new().load();
         assert!(actual.is_ok());
 
@@ -119,6 +152,7 @@ mod tests {
         assert_eq!(config.database.port, 5432);
         assert_eq!(config.server.host, "0.0.0.0");
         assert_eq!(config.server.port, 8080);
+        assert_eq!(config.server.graceful_shutdown, true);
     }
 
     #[test]
@@ -144,7 +178,7 @@ mod tests {
 
     #[test]
     fn test_config_loader_load_with_file() {
-        let mut temp_file = NamedTempFile::new().unwrap();
+        let mut temp_file = NamedTempFile::with_suffix(".toml").unwrap();
         writeln!(
             temp_file,
             r#"
@@ -155,6 +189,7 @@ port = 5433
 [server]
 host = "127.0.0.1"
 port = 3000
+graceful_shutdown = true
         "#
         )
         .unwrap();

@@ -145,7 +145,7 @@ jobs:
 
       - name: Generate code coverage
         working-directory: .
-        run: cargo tarpaulin --workspace --verbose --xml
+        run: cargo tarpaulin --workspace --verbose --out xml
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/inngest_test
           REDIS_URL: redis://localhost:6379
