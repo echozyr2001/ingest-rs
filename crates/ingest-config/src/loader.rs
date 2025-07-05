@@ -113,9 +113,11 @@ impl Default for ConfigLoader {
 mod tests {
     use super::*;
     use pretty_assertions::assert_eq;
-    use std::env;
     use std::io::Write;
+    use std::sync::Mutex;
     use tempfile::NamedTempFile;
+
+    static ENV_MUTEX: Mutex<()> = Mutex::new(());
 
     #[test]
     fn test_config_loader_new() {
@@ -138,10 +140,12 @@ mod tests {
 
     #[test]
     fn test_config_loader_load_defaults() {
+        let _lock = ENV_MUTEX.lock().unwrap();
+
         // Clean up any existing environment variables
         unsafe {
-            env::remove_var("INNGEST_DATABASE_HOST");
-            env::remove_var("INNGEST_SERVER_PORT");
+            std::env::remove_var("INNGEST_DATABASE_HOST");
+            std::env::remove_var("INNGEST_SERVER_PORT");
         }
 
         let actual = ConfigLoader::new().load();
@@ -157,9 +161,17 @@ mod tests {
 
     #[test]
     fn test_config_loader_load_with_env() {
+        let _lock = ENV_MUTEX.lock().unwrap();
+
+        // Clean up any existing environment variables first
         unsafe {
-            env::set_var("INNGEST_DATABASE_HOST", "db.example.com");
-            env::set_var("INNGEST_SERVER_PORT", "9090");
+            std::env::remove_var("INNGEST_DATABASE_HOST");
+            std::env::remove_var("INNGEST_SERVER_PORT");
+        }
+
+        unsafe {
+            std::env::set_var("INNGEST_DATABASE_HOST", "db.example.com");
+            std::env::set_var("INNGEST_SERVER_PORT", "9090");
         }
 
         let actual = ConfigLoader::new().load();
@@ -171,8 +183,8 @@ mod tests {
 
         // Clean up
         unsafe {
-            env::remove_var("INNGEST_DATABASE_HOST");
-            env::remove_var("INNGEST_SERVER_PORT");
+            std::env::remove_var("INNGEST_DATABASE_HOST");
+            std::env::remove_var("INNGEST_SERVER_PORT");
         }
     }
 
