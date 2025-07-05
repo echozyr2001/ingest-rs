@@ -72,7 +72,7 @@ mod tests {
     #[test]
     fn test_id_display() {
         let fixture = Id::new("test-id");
-        let actual = format!("{}", fixture);
+        let actual = format!("{fixture}");
         let expected = "test-id";
         assert_eq!(actual, expected);
     }

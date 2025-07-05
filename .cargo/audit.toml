@@ -1,0 +1,21 @@
+# Cargo audit configuration
+# This file configures which security advisories to ignore
+
+[advisories]
+# Temporarily ignore RUSTSEC-2023-0071 (Marvin Attack in RSA crate)
+# This is a transitive dependency through SQLx -> MySQL connector
+# Will be resolved when SQLx updates to a fixed version of RSA crate
+ignore = [
+  "RUSTSEC-2023-0071", # Marvin Attack: potential key recovery through timing sidechannels
+]
+
+# Note: This advisory affects the RSA crate used by SQLx's MySQL connector.
+# The vulnerability is related to timing side-channel attacks during RSA decryption.
+# Since this is a transitive dependency and SQLx 0.8.6 is the latest version,
+# we temporarily ignore this until SQLx updates to use a fixed RSA version.
+# 
+# Monitor for updates:
+# - SQLx releases: https://github.com/launchbadge/sqlx/releases
+# - RSA crate releases: https://github.com/RustCrypto/RSA/releases
+#
+# Remove this ignore once SQLx updates to RSA 0.10.0 or later stable version.
