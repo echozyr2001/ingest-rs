@@ -164,7 +164,7 @@ impl Config {
         }
 
         url::Url::parse(&self.redis.url)
-            .map_err(|e| ConfigError::validation(format!("Invalid Redis URL: {}", e)))?;
+            .map_err(|e| ConfigError::validation(format!("Invalid Redis URL: {e}")))?;
 
         if let Some(max_conn) = self.redis.max_connections {
             if max_conn == 0 {

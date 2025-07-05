@@ -53,8 +53,7 @@ impl ConfigLoader {
                 self.builder = self.builder.add_source(File::with_name(file_path));
             } else {
                 return Err(ConfigError::file(format!(
-                    "Configuration file not found: {}",
-                    file_path
+                    "Configuration file not found: {file_path}"
                 )));
             }
         }

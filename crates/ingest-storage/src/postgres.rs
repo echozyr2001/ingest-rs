@@ -46,7 +46,7 @@ impl PostgresStorage {
             .await
             .map_err(|e| {
                 error!("Failed to connect to PostgreSQL: {}", e);
-                StorageError::connection(format!("Failed to connect to PostgreSQL: {}", e))
+                StorageError::connection(format!("Failed to connect to PostgreSQL: {e}"))
             })?;
 
         info!("Successfully connected to PostgreSQL database");
@@ -77,7 +77,7 @@ impl Storage for PostgresStorage {
                 let response_time = start.elapsed().as_millis() as u64;
                 error!("PostgreSQL health check failed: {}", e);
                 Ok(HealthCheck::unhealthy(
-                    format!("Health check failed: {}", e),
+                    format!("Health check failed: {e}"),
                     response_time,
                 ))
             }
@@ -87,7 +87,7 @@ impl Storage for PostgresStorage {
     async fn begin_transaction(&self) -> Result<Self::Transaction> {
         let tx = self.pool.begin().await.map_err(|e| {
             error!("Failed to begin transaction: {}", e);
-            StorageError::transaction(format!("Failed to begin transaction: {}", e))
+            StorageError::transaction(format!("Failed to begin transaction: {e}"))
         })?;
 
         debug!("Started new PostgreSQL transaction");
@@ -99,7 +99,7 @@ impl Storage for PostgresStorage {
 
         let result = sqlx::query(query).execute(&self.pool).await.map_err(|e| {
             error!("Query execution failed: {}", e);
-            StorageError::query(format!("Query execution failed: {}", e))
+            StorageError::query(format!("Query execution failed: {e}"))
         })?;
 
         let rows_affected = result.rows_affected();
@@ -130,7 +130,7 @@ impl Transaction for PostgresTransaction {
 
         let result = sqlx::query(query).execute(&mut **tx).await.map_err(|e| {
             error!("Transaction query execution failed: {}", e);
-            StorageError::query(format!("Transaction query execution failed: {}", e))
+            StorageError::query(format!("Transaction query execution failed: {e}"))
         })?;
 
         let rows_affected = result.rows_affected();
@@ -147,7 +147,7 @@ impl Transaction for PostgresTransaction {
 
         tx.commit().await.map_err(|e| {
             error!("Transaction commit failed: {}", e);
-            StorageError::transaction(format!("Transaction commit failed: {}", e))
+            StorageError::transaction(format!("Transaction commit failed: {e}"))
         })?;
 
         debug!("Transaction committed successfully");
@@ -163,7 +163,7 @@ impl Transaction for PostgresTransaction {
 
         tx.rollback().await.map_err(|e| {
             error!("Transaction rollback failed: {}", e);
-            StorageError::transaction(format!("Transaction rollback failed: {}", e))
+            StorageError::transaction(format!("Transaction rollback failed: {e}"))
         })?;
 
         debug!("Transaction rolled back successfully");

@@ -68,7 +68,7 @@ impl DatabaseConfig {
         let mut url = self.url();
 
         if let Some(ssl_mode) = &self.ssl_mode {
-            url.push_str(&format!("?sslmode={}", ssl_mode));
+            url.push_str(&format!("?sslmode={ssl_mode}"));
         }
 
         url
