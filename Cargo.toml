@@ -1,16 +1,102 @@
 [workspace]
+members = [
+  "crates/ingest-core",
+  "crates/ingest-config",
+  "crates/ingest-storage",
+  "crates/ingest-telemetry",
+  "crates/ingest-monitoring",
+  "crates/ingest-events",
+  "crates/ingest-expressions",
+  "crates/ingest-execution",
+  "crates/ingest-state",
+  "crates/ingest-queue",
+  "crates/ingest-pubsub",
+  "crates/ingest-history",
+  "crates/ingest-api",
+  "crates/ingest-connect",
+  "crates/ingest-cli",
+  "crates/ingest-sdk",
+  "crates/ingest-server",
+]
 resolver = "3"
-members = ["crates/ingest-core"]
 
 [workspace.package]
 version = "0.1.0"
 edition = "2024"
+rust-version = "1.87"
+license = ""
+repository = ""
+homepage = ""
+documentation = ""
+keywords = ["durable", "functions", "workflow", "serverless", "async"]
+categories = ["asynchronous", "web-programming", "development-tools"]
 
 [workspace.dependencies]
+# Core async runtime
+tokio = { version = "1.0", features = ["full"] }
+tokio-test = "0.4"
+
+# Serialization
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-uuid = { version = "1.17", features = ["v4"] }
-ulid = "1.2"
+
+# Error handling
 anyhow = "1.0"
 thiserror = "2.0"
+
+# Utilities
+uuid = { version = "1.0", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+url = { version = "2.0", features = ["serde"] }
+
+# Database
+sqlx = { version = "0.8", features = [
+  "postgres",
+  "runtime-tokio-rustls",
+  "chrono",
+  "uuid",
+  "json",
+] }
+redis = { version = "0.32", features = ["tokio-comp", "connection-manager"] }
+
+# Configuration
+config = "0.15"
+toml = "0.8"
+
+# Logging and tracing
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+opentelemetry = "0.30"
+opentelemetry-otlp = "0.30"
+
+# HTTP and API
+axum = "0.8"
+tower = "0.5"
+tower-http = { version = "0.6", features = ["cors", "trace"] }
+hyper = "1.0"
+
+# Async traits
 async-trait = "0.1"
+
+# Testing
+pretty_assertions = "1.0"
+testcontainers = "0.24"
+
+# Development dependencies
+derive_setters = "0.1"
+
+[profile.dev]
+opt-level = 0
+debug = true
+split-debuginfo = "unpacked"
+
+[profile.release]
+opt-level = 3
+debug = false
+lto = "thin"
+codegen-units = 1
+panic = "abort"
+
+[profile.test]
+opt-level = 1
+debug = true

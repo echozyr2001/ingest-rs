@@ -1,5 +1,5 @@
 [package]
-name = "ingest-core"
+name = "ingest-storage"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -9,12 +9,19 @@ homepage.workspace = true
 documentation.workspace = true
 keywords.workspace = true
 categories.workspace = true
-description = "Core types, traits, and utilities for the Inngest durable functions platform"
+description = "Storage abstractions and implementations for the Inngest durable functions platform"
 
 [dependencies]
+# Core
+ingest-core = { path = "../ingest-core" }
+ingest-config = { path = "../ingest-config" }
+
 # Async runtime
 tokio = { workspace = true }
 async-trait = { workspace = true }
+
+# Database
+sqlx = { workspace = true }
 
 # Serialization
 serde = { workspace = true }
@@ -27,11 +34,11 @@ thiserror = { workspace = true }
 # Utilities
 uuid = { workspace = true }
 chrono = { workspace = true }
-url = { workspace = true }
 
-# Development
-derive_setters = { workspace = true }
+# Tracing
+tracing = { workspace = true }
 
 [dev-dependencies]
 tokio-test = { workspace = true }
 pretty_assertions = { workspace = true }
+testcontainers = { workspace = true }
