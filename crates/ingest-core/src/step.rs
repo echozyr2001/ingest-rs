@@ -26,7 +26,8 @@ pub enum StepStatus {
 }
 
 /// Step output data
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Setters)]
+#[setters(strip_option, into)]
 pub struct StepOutput {
     /// Output data
     pub data: Json,
@@ -489,5 +490,16 @@ mod tests {
         let actual: Step = serde_json::from_str(&serialized).unwrap();
         assert_eq!(actual.name, fixture.name);
         assert_eq!(actual.status, fixture.status);
+    }
+
+    #[test]
+    fn test_step_output_setters() {
+        let fixture_data = json!({"result": "success"});
+        let actual = StepOutput::success(fixture_data.clone())
+            .data(json!({"updated": "data"}))
+            .error("test error");
+
+        assert_eq!(actual.data, json!({"updated": "data"}));
+        assert_eq!(actual.error, Some("test error".to_string()));
     }
 }

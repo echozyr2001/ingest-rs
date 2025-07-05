@@ -5,6 +5,7 @@ members = [
   "crates/ingest-storage",
   "crates/ingest-telemetry",
   "crates/ingest-monitoring",
+  "crates/ingest-migrations",
   "crates/ingest-events",
   "crates/ingest-expressions",
   "crates/ingest-execution",

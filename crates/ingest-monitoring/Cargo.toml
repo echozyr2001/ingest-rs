@@ -13,8 +13,34 @@ description = "Placeholder crate for the Inngest durable functions platform"
 
 [dependencies]
 ingest-core = { path = "../ingest-core" }
+ingest-config = { path = "../ingest-config" }
+ingest-storage = { path = "../ingest-storage" }
+ingest-telemetry = { path = "../ingest-telemetry" }
+
+# Async runtime
 tokio = { workspace = true }
+async-trait = { workspace = true }
+
+# HTTP server for health endpoints
+axum = { version = "0.7" }
+tower = { version = "0.5" }
+tower-http = { version = "0.6", features = ["cors", "trace"] }
+
+# Serialization
 serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Error handling
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+
+# Utilities
+uuid = { workspace = true }
+chrono = { workspace = true }
+derive_setters = { workspace = true }
+
+# Tracing
+tracing = { workspace = true }
 
 [dev-dependencies]
 pretty_assertions = { workspace = true }

@@ -1,4 +1,5 @@
 use crate::{DateTime, Id, Json, Result};
+use derive_setters::Setters;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -6,7 +7,8 @@ use std::collections::HashMap;
 pub type EventId = Id;
 
 /// Event data payload
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Setters)]
+#[setters(strip_option, into)]
 pub struct EventData {
     /// The event payload as JSON
     pub data: Json,
@@ -36,13 +38,16 @@ impl EventData {
 }
 
 /// Core event type representing an event in the system
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Setters)]
+#[setters(strip_option, into)]
 pub struct Event {
     /// Unique event identifier
     pub id: EventId,
     /// Event name/type
+    #[setters(skip)]
     pub name: String,
     /// Event payload and metadata
+    #[setters(skip)]
     pub data: EventData,
     /// Event timestamp
     pub timestamp: DateTime,
@@ -253,5 +258,30 @@ mod tests {
         let actual: Event = serde_json::from_str(&serialized).unwrap();
         assert_eq!(actual.name, fixture.name);
         assert_eq!(actual.data, fixture.data);
+    }
+
+    #[test]
+    fn test_event_data_setters() {
+        let fixture_data = json!({"key": "value"});
+        let actual = EventData::new(fixture_data.clone())
+            .data(json!({"updated": "value"}))
+            .metadata(HashMap::from([("source".to_string(), "test".to_string())]));
+
+        assert_eq!(actual.data, json!({"updated": "value"}));
+        assert_eq!(actual.metadata.get("source"), Some(&"test".to_string()));
+    }
+
+    #[test]
+    fn test_event_setters_with_derive() {
+        let fixture = Event::new("test.event", json!({}))
+            .source("api")
+            .version("1.0")
+            .user("user123")
+            .trace_id("trace123");
+
+        assert_eq!(fixture.source, Some("api".to_string()));
+        assert_eq!(fixture.version, Some("1.0".to_string()));
+        assert_eq!(fixture.user, Some("user123".to_string()));
+        assert_eq!(fixture.trace_id, Some("trace123".to_string()));
     }
 }

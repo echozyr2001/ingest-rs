@@ -1,0 +1,36 @@
+[package]
+name = "ingest-migrations"
+version = "0.1.0"
+edition = "2021"
+description = "Database migration system for Inngest"
+
+[dependencies]
+ingest-core = { path = "../ingest-core" }
+ingest-config = { path = "../ingest-config" }
+ingest-storage = { path = "../ingest-storage" }
+
+# Async runtime
+tokio = { workspace = true }
+async-trait = { workspace = true }
+
+# Database
+sqlx = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Error handling
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+
+# Utilities
+uuid = { workspace = true }
+chrono = { workspace = true }
+derive_setters = { workspace = true }
+
+# Tracing
+tracing = { workspace = true }
+
+[dev-dependencies]
+pretty_assertions = { workspace = true }

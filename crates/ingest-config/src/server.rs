@@ -9,6 +9,8 @@ pub struct ServerConfig {
     pub host: String,
     /// Server port
     pub port: u16,
+    /// Health check port (optional)
+    pub health_port: Option<u16>,
     /// Enable graceful shutdown
     pub graceful_shutdown: bool,
     /// Graceful shutdown timeout
@@ -28,6 +30,7 @@ impl Default for ServerConfig {
         Self {
             host: "0.0.0.0".to_string(),
             port: 8080,
+            health_port: None,
             graceful_shutdown: true,
             shutdown_timeout: Some(std::time::Duration::from_secs(30)),
             request_timeout: Some(std::time::Duration::from_secs(60)),

@@ -13,10 +13,40 @@ description = "Telemetry and observability for the Inngest durable functions pla
 
 [dependencies]
 ingest-core = { path = "../ingest-core" }
+ingest-config = { path = "../ingest-config" }
+
+# Async runtime
 tokio = { workspace = true }
-tracing = { workspace = true }
+async-trait = { workspace = true }
+
+# OpenTelemetry
 opentelemetry = { workspace = true }
+opentelemetry-otlp = { version = "0.27", features = ["tonic", "metrics", "logs"] }
+opentelemetry-jaeger = { version = "0.22" }
+opentelemetry-prometheus = { version = "0.17" }
+opentelemetry-semantic-conventions = { version = "0.27" }
+opentelemetry_sdk = { version = "0.27", features = ["rt-tokio", "metrics", "logs"] }
+
+# Tracing integration
+tracing = { workspace = true }
+tracing-opentelemetry = { version = "0.27" }
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+
+# Metrics
+prometheus = { version = "0.13" }
+
+# Serialization
 serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Error handling
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+
+# Utilities
+uuid = { workspace = true }
+url = { version = "2.5" }
+derive_setters = { version = "0.1" }
 
 [dev-dependencies]
 pretty_assertions = { workspace = true }

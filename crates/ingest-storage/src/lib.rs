@@ -12,12 +12,14 @@
 
 pub mod error;
 pub mod postgres;
+pub mod redis;
 pub mod traits;
 
-use ingest_config::DatabaseConfig;
+use ingest_config::{DatabaseConfig, RedisConfig};
 
 pub use error::{Result, StorageError};
 pub use postgres::PostgresStorage;
+pub use redis::{CacheStorage, RedisStorage};
 pub use traits::{Storage, Transaction};
 
 /// Storage factory for creating storage instances
@@ -27,6 +29,11 @@ impl StorageFactory {
     /// Create a PostgreSQL storage instance
     pub async fn create_postgres(config: &DatabaseConfig) -> Result<PostgresStorage> {
         PostgresStorage::new(config).await
+    }
+
+    /// Create a Redis storage instance
+    pub async fn create_redis(config: &RedisConfig) -> Result<RedisStorage> {
+        RedisStorage::new(config).await
     }
 }
 
@@ -69,6 +76,13 @@ impl HealthCheck {
 mod tests {
     use super::*;
     use pretty_assertions::assert_eq;
+
+    #[test]
+    fn test_storage_factory_redis_config() {
+        let fixture = ingest_config::RedisConfig::default();
+        assert_eq!(fixture.url, "redis://localhost:6379");
+        assert_eq!(fixture.max_connections, Some(10));
+    }
 
     #[test]
     fn test_health_check_healthy() {

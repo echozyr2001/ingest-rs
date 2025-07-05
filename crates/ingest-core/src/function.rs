@@ -7,9 +7,11 @@ use std::collections::HashMap;
 pub type FunctionId = Id;
 
 /// Function trigger configuration
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Setters)]
+#[setters(strip_option, into)]
 pub struct FunctionTrigger {
     /// Event pattern to match
+    #[setters(skip)]
     pub event: String,
     /// Optional expression for filtering
     pub expression: Option<String>,
@@ -341,5 +343,16 @@ mod tests {
         let actual: Function = serde_json::from_str(&serialized).unwrap();
         assert_eq!(actual.name, fixture.name);
         assert_eq!(actual.triggers, fixture.triggers);
+    }
+
+    #[test]
+    fn test_function_trigger_setters() {
+        let actual = FunctionTrigger::event("user.created")
+            .expression("user.id == '123'")
+            .config(HashMap::from([("key".to_string(), json!("value"))]));
+
+        assert_eq!(actual.event, "user.created"); // event 字段由构造函数设置，不能通过 setter 修改
+        assert_eq!(actual.expression, Some("user.id == '123'".to_string()));
+        assert_eq!(actual.config.get("key"), Some(&json!("value")));
     }
 }
