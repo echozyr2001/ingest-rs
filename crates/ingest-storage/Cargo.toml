@@ -22,7 +22,7 @@ async-trait = { workspace = true }
 
 # Database
 sqlx = { workspace = true }
-redis = { version = "0.27", features = ["tokio-comp", "connection-manager", "cluster"] }
+redis = { workspace = true }
 
 # Serialization
 serde = { workspace = true }

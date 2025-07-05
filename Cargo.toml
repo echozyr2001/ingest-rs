@@ -66,9 +66,19 @@ toml = "0.8"
 
 # Logging and tracing
 tracing = "0.1"
+tracing-opentelemetry = "0.31"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 opentelemetry = "0.30"
 opentelemetry-otlp = "0.30"
+opentelemetry-jaeger = "0.22"
+opentelemetry-prometheus = "0.29"
+opentelemetry-semantic-conventions = "0.30"
+opentelemetry_sdk = { version = "0.30", features = [
+  "rt-tokio",
+  "metrics",
+  "logs",
+] }
+prometheus = "0.14"
 
 # HTTP and API
 axum = "0.8"

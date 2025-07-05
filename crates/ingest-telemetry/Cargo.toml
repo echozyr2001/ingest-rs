@@ -21,19 +21,19 @@ async-trait = { workspace = true }
 
 # OpenTelemetry
 opentelemetry = { workspace = true }
-opentelemetry-otlp = { version = "0.27", features = ["tonic", "metrics", "logs"] }
-opentelemetry-jaeger = { version = "0.22" }
-opentelemetry-prometheus = { version = "0.17" }
-opentelemetry-semantic-conventions = { version = "0.27" }
-opentelemetry_sdk = { version = "0.27", features = ["rt-tokio", "metrics", "logs"] }
+opentelemetry-otlp = { workspace = true }
+opentelemetry-jaeger = { workspace = true }
+opentelemetry-prometheus = { workspace = true }
+opentelemetry-semantic-conventions = { workspace = true }
+opentelemetry_sdk = { workspace = true }
 
 # Tracing integration
 tracing = { workspace = true }
-tracing-opentelemetry = { version = "0.27" }
-tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+tracing-opentelemetry = { workspace = true }
+tracing-subscriber = { workspace = true }
 
 # Metrics
-prometheus = { version = "0.13" }
+prometheus = { workspace = true }
 
 # Serialization
 serde = { workspace = true }
@@ -45,8 +45,8 @@ thiserror = { workspace = true }
 
 # Utilities
 uuid = { workspace = true }
-url = { version = "2.5" }
-derive_setters = { version = "0.1" }
+url = { workspace = true }
+derive_setters = { workspace = true }
 
 [dev-dependencies]
 pretty_assertions = { workspace = true }
