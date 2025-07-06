@@ -9,12 +9,37 @@ homepage.workspace = true
 documentation.workspace = true
 keywords.workspace = true
 categories.workspace = true
-description = "Placeholder crate for the Inngest durable functions platform"
+description = "Expression engine with CEL support for the Inngest durable functions platform"
 
 [dependencies]
+# Core dependencies
 ingest-core = { path = "../ingest-core" }
+ingest-events = { path = "../ingest-events" }
+
+# CEL integration
+cel-interpreter = "0.5" # CEL evaluation engine
+cel-parser = "0.5"      # CEL parsing
+
+# Async runtime
 tokio = { workspace = true }
+
+# Serialization
 serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Performance
+dashmap = "6.0"      # Concurrent caching
+parking_lot = "0.12" # High-performance locks
+
+# Error handling
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+
+# Async traits
+async-trait = { workspace = true }
 
 [dev-dependencies]
 pretty_assertions = { workspace = true }
+criterion = "0.6"                        # Benchmarking
+proptest = "1.0"                         # Property testing
+tokio-test = { workspace = true }
