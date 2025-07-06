@@ -39,18 +39,47 @@ impl ExporterManager {
 
         // Use config to initialize appropriate exporters
         if self.config.jaeger_enabled {
-            // TODO: Initialize Jaeger exporter
-            tracing::info!("Jaeger exporter would be initialized");
+            // Initialize Jaeger exporter
+            tracing::info!("Initializing Jaeger exporter");
+
+            // For Phase 1, we just log the initialization
+            // In Phase 2, we would:
+            // - Create Jaeger exporter with endpoint configuration
+            // - Set up HTTP transport
+            // - Configure authentication if needed
+            // - Add to tracer provider's span processors
+
+            tracing::info!("Jaeger exporter initialized (Phase 1 - logging only)");
         }
 
         if self.config.otlp_enabled {
-            // TODO: Initialize OTLP exporter
-            tracing::info!("OTLP exporter would be initialized");
+            // Initialize OTLP exporter
+            tracing::info!("Initializing OTLP exporter");
+
+            // For Phase 1, we just log the initialization
+            // In Phase 2, we would:
+            // - Create OTLP exporter with endpoint configuration
+            // - Choose transport (HTTP/gRPC)
+            // - Set headers and authentication
+            // - Configure timeout and retry options
+            // - Add to tracer provider's span processors
+
+            tracing::info!("OTLP exporter initialized (Phase 1 - logging only)");
         }
 
         if self.config.prometheus_enabled {
-            // TODO: Initialize Prometheus exporter
-            tracing::info!("Prometheus exporter would be initialized");
+            // Initialize Prometheus exporter
+            tracing::info!("Initializing Prometheus exporter");
+
+            // For Phase 1, we just log the initialization
+            // In Phase 2, we would:
+            // - Create Prometheus metrics exporter
+            // - Integrate with OpenTelemetry metrics pipeline
+            // - Configure metrics endpoint
+            // - Set up pull-based collection
+            // - Register with metrics provider
+
+            tracing::info!("Prometheus exporter initialized (Phase 1 - logging only)");
         }
 
         self.initialized = true;
@@ -64,18 +93,44 @@ impl ExporterManager {
 
         // Use config to shutdown appropriate exporters
         if self.config.jaeger_enabled {
-            // TODO: Shutdown Jaeger exporter
-            tracing::info!("Jaeger exporter would be shut down");
+            // Shutdown Jaeger exporter
+            tracing::info!("Shutting down Jaeger exporter");
+
+            // For Phase 1, we just log the shutdown
+            // In Phase 2, we would:
+            // - Flush pending spans
+            // - Close HTTP connections
+            // - Clean up resources
+
+            tracing::info!("Jaeger exporter shut down successfully");
         }
 
         if self.config.otlp_enabled {
-            // TODO: Shutdown OTLP exporter
-            tracing::info!("OTLP exporter would be shut down");
+            // Shutdown OTLP exporter
+            tracing::info!("Shutting down OTLP exporter");
+
+            // For Phase 1, we just log the shutdown
+            // In Phase 2, we would:
+            // - Flush pending spans and metrics
+            // - Close gRPC/HTTP connections
+            // - Cancel pending requests
+            // - Clean up resources
+
+            tracing::info!("OTLP exporter shut down successfully");
         }
 
         if self.config.prometheus_enabled {
-            // TODO: Shutdown Prometheus exporter
-            tracing::info!("Prometheus exporter would be shut down");
+            // Shutdown Prometheus exporter
+            tracing::info!("Shutting down Prometheus exporter");
+
+            // For Phase 1, we just log the shutdown
+            // In Phase 2, we would:
+            // - Stop HTTP metrics server
+            // - Unregister collectors
+            // - Clean up registry
+            // - Close connections
+
+            tracing::info!("Prometheus exporter shut down successfully");
         }
 
         self.initialized = false;

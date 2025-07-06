@@ -290,4 +290,71 @@ mod tests {
         record_metric!("test.counter", 1.0);
         record_metric!("test.labeled", 2.0, "label1" => "value1", "label2" => "value2");
     }
+
+    #[tokio::test]
+    async fn test_full_telemetry_system_lifecycle() {
+        let config = create_test_config()
+            .with_jaeger("http://localhost:14268")
+            .with_otlp("http://localhost:4317")
+            .with_prometheus(9090);
+
+        let telemetry = TelemetrySystem::new(config);
+
+        // Test initialization
+        assert!(!telemetry.is_initialized().await);
+        telemetry.initialize().await.unwrap();
+        assert!(telemetry.is_initialized().await);
+
+        // Test metrics creation
+        let counter = telemetry
+            .counter("test_counter", "Test counter")
+            .await
+            .unwrap();
+        counter.increment().await;
+        assert_eq!(counter.get().await, 1.0);
+
+        let gauge = telemetry.gauge("test_gauge", "Test gauge").await.unwrap();
+        gauge.set(42.0).await;
+        assert_eq!(gauge.get().await, 42.0);
+
+        let histogram = telemetry
+            .histogram("test_histogram", "Test histogram")
+            .await
+            .unwrap();
+        histogram.observe(1.5).await;
+        assert_eq!(histogram.count().await, 1);
+
+        // Test metric recording
+        telemetry
+            .record_metric("custom_metric", std::f64::consts::PI, &[("label", "value")])
+            .await
+            .unwrap();
+
+        // Test metrics snapshot
+        let snapshot = telemetry.metrics_snapshot().await.unwrap();
+        assert!(snapshot.contains("test_counter"));
+        assert!(snapshot.contains("test_gauge"));
+        assert!(snapshot.contains("test_histogram"));
+
+        // Test shutdown
+        telemetry.shutdown().await.unwrap();
+        assert!(!telemetry.is_initialized().await);
+    }
+
+    #[tokio::test]
+    async fn test_telemetry_with_tracing() {
+        let config = create_test_config();
+        let telemetry = TelemetrySystem::new(config);
+
+        telemetry.initialize().await.unwrap();
+
+        // Test that we can create spans after initialization
+        let span = ::tracing::info_span!("test_span", test_field = "test_value");
+        let _guard = span.enter();
+
+        ::tracing::info!("Test log message");
+        ::tracing::debug!("Debug message");
+
+        telemetry.shutdown().await.unwrap();
+    }
 }
