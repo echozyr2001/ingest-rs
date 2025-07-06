@@ -12,9 +12,37 @@ categories.workspace = true
 description = "Placeholder crate for the Inngest durable functions platform"
 
 [dependencies]
+# Core dependencies
 ingest-core = { path = "../ingest-core" }
+ingest-storage = { path = "../ingest-storage" }
+ingest-telemetry = { path = "../ingest-telemetry" }
+
+# Async runtime
 tokio = { workspace = true }
+
 serde = { workspace = true }
+# Serialization
+serde_json = { workspace = true }
+rmp-serde = "1.0"                 # MessagePack
+
+# Validation
+jsonschema = "0.30"
+regex = "1.0"
+glob = "0.3"
+
+# Performance
+rayon = "1.0"   # Parallel processing
+dashmap = "6.0" # Concurrent HashMap
+
+# Error handling
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+
+# Async traits
+async-trait = { workspace = true }
 
 [dev-dependencies]
 pretty_assertions = { workspace = true }
+criterion = "0.6"                        # Benchmarking
+proptest = "1.0"                         # Property testing
+tokio-test = { workspace = true }
