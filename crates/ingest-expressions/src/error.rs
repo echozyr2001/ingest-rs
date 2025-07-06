@@ -309,7 +309,7 @@ mod tests {
     #[test]
     fn test_error_creation() {
         let fixture = ExpressionError::parse_error("Invalid syntax");
-        let actual = format!("{}", fixture);
+        let actual = format!("{fixture}");
         let expected = "Parse error: Invalid syntax";
         assert_eq!(actual, expected);
     }
@@ -333,7 +333,7 @@ mod tests {
     #[test]
     fn test_timeout_error() {
         let fixture = ExpressionError::timeout_error(1000);
-        let actual = format!("{}", fixture);
+        let actual = format!("{fixture}");
         let expected = "Expression evaluation timeout after 1000ms";
         assert_eq!(actual, expected);
     }
@@ -341,7 +341,7 @@ mod tests {
     #[test]
     fn test_memory_limit_error() {
         let fixture = ExpressionError::memory_limit_exceeded(1024, 512);
-        let actual = format!("{}", fixture);
+        let actual = format!("{fixture}");
         let expected = "Memory limit exceeded: used 1024 bytes, limit 512 bytes";
         assert_eq!(actual, expected);
     }
@@ -349,7 +349,7 @@ mod tests {
     #[test]
     fn test_function_call_error() {
         let fixture = ExpressionError::invalid_function_call("size", "Expected 1 argument, got 2");
-        let actual = format!("{}", fixture);
+        let actual = format!("{fixture}");
         let expected = "Invalid function call: size - Expected 1 argument, got 2";
         assert_eq!(actual, expected);
     }
@@ -357,7 +357,7 @@ mod tests {
     #[test]
     fn test_unsupported_operation_error() {
         let fixture = ExpressionError::unsupported_operation("+", "string", "number");
-        let actual = format!("{}", fixture);
+        let actual = format!("{fixture}");
         let expected = "Unsupported operation: + for types string and number";
         assert_eq!(actual, expected);
     }
@@ -365,7 +365,7 @@ mod tests {
     #[test]
     fn test_index_out_of_bounds_error() {
         let fixture = ExpressionError::index_out_of_bounds(5, 3);
-        let actual = format!("{}", fixture);
+        let actual = format!("{fixture}");
         let expected = "Index out of bounds: index 5 for array of length 3";
         assert_eq!(actual, expected);
     }
@@ -373,7 +373,7 @@ mod tests {
     #[test]
     fn test_property_not_found_error() {
         let fixture = ExpressionError::property_not_found("name", "User");
-        let actual = format!("{}", fixture);
+        let actual = format!("{fixture}");
         let expected = "Property not found: name on object of type User";
         assert_eq!(actual, expected);
     }
@@ -381,7 +381,7 @@ mod tests {
     #[test]
     fn test_syntax_error() {
         let fixture = ExpressionError::syntax_error("Unexpected token", 15);
-        let actual = format!("{}", fixture);
+        let actual = format!("{fixture}");
         let expected = "Invalid syntax: Unexpected token at position 15";
         assert_eq!(actual, expected);
     }

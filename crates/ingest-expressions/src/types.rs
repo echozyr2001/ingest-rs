@@ -592,7 +592,7 @@ mod tests {
     #[test]
     fn test_expression_type_display() {
         let fixture = ExpressionType::String;
-        let actual = format!("{}", fixture);
+        let actual = format!("{fixture}");
         let expected = "string";
         assert_eq!(actual, expected);
     }
@@ -603,7 +603,7 @@ mod tests {
             ExpressionValue::int(1),
             ExpressionValue::string("hello"),
         ]);
-        let actual = format!("{}", fixture);
+        let actual = format!("{fixture}");
         let expected = "[1, hello]";
         assert_eq!(actual, expected);
     }
