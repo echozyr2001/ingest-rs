@@ -488,7 +488,7 @@ mod tests {
 
         for i in 0..10 {
             let result = fixture
-                .add_event(create_test_event(&format!("event{}", i)))
+                .add_event(create_test_event(&format!("event{i}")))
                 .await;
             if result.is_ok() {
                 success_count += 1;
