@@ -1785,10 +1785,26 @@ dependencies = [
 name = "ingest-state"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
+ "async-trait",
+ "chrono",
+ "dashmap",
+ "derive_setters",
+ "ingest-config",
  "ingest-core",
+ "ingest-storage",
+ "ingest-telemetry",
  "pretty_assertions",
+ "redis",
  "serde",
+ "serde_json",
+ "sqlx",
+ "testcontainers",
+ "thiserror 2.0.12",
  "tokio",
+ "tokio-test",
+ "tracing",
+ "uuid",
 ]
 
 [[package]]

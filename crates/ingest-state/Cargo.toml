@@ -9,12 +9,45 @@ homepage.workspace = true
 documentation.workspace = true
 keywords.workspace = true
 categories.workspace = true
-description = "Placeholder crate for the Inngest durable functions platform"
+description = "State management system for the Inngest durable functions platform"
 
 [dependencies]
+# Core dependencies
 ingest-core = { path = "../ingest-core" }
+ingest-storage = { path = "../ingest-storage" }
+ingest-config = { path = "../ingest-config" }
+ingest-telemetry = { path = "../ingest-telemetry" }
+
+# Async runtime
 tokio = { workspace = true }
+
+# Serialization
 serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Database
+sqlx = { workspace = true }
+redis = { workspace = true }
+
+# Error handling
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+
+# Async traits
+async-trait = { workspace = true }
+
+# Utilities
+uuid = { workspace = true }
+chrono = { workspace = true }
+dashmap = "6.0"
+
+# Tracing
+tracing = { workspace = true }
+
+# Development dependencies
+derive_setters = { workspace = true }
 
 [dev-dependencies]
 pretty_assertions = { workspace = true }
+tokio-test = { workspace = true }
+testcontainers = { workspace = true }
