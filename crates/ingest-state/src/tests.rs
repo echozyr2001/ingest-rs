@@ -134,7 +134,7 @@ fn test_state_snapshot_creation() {
 #[test]
 fn test_state_error_creation() {
     let fixture = StateError::state_not_found("test_run_id");
-    let actual = format!("{}", fixture);
+    let actual = format!("{fixture}");
     let expected = "State not found for run ID: test_run_id";
     assert_eq!(actual, expected);
 }
@@ -143,7 +143,7 @@ fn test_state_error_creation() {
 #[test]
 fn test_validation_error_creation() {
     let fixture = StateError::validation("Invalid state");
-    let actual = format!("{}", fixture);
+    let actual = format!("{fixture}");
     let expected = "State validation failed: Invalid state";
     assert_eq!(actual, expected);
 }
@@ -152,7 +152,7 @@ fn test_validation_error_creation() {
 #[test]
 fn test_version_conflict_error_creation() {
     let fixture = StateError::version_conflict("test_run_id", 5, 3);
-    let actual = format!("{}", fixture);
+    let actual = format!("{fixture}");
     let expected = "Version conflict for run ID test_run_id: expected 5, got 3";
     assert_eq!(actual, expected);
 }
@@ -161,7 +161,7 @@ fn test_version_conflict_error_creation() {
 #[test]
 fn test_invalid_transition_error_creation() {
     let fixture = StateError::invalid_transition("running", "pending", "Cannot go backwards");
-    let actual = format!("{}", fixture);
+    let actual = format!("{fixture}");
     let expected = "Invalid state transition from running to pending: Cannot go backwards";
     assert_eq!(actual, expected);
 }

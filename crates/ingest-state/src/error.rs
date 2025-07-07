@@ -297,7 +297,7 @@ mod tests {
     #[test]
     fn test_error_display() {
         let fixture = StateError::state_not_found("test_run");
-        let actual = format!("{}", fixture);
+        let actual = format!("{fixture}");
         let expected = "State not found for run ID: test_run";
         assert_eq!(actual, expected);
     }
