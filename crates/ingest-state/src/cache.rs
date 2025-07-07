@@ -352,7 +352,7 @@ mod tests {
         // Create test states
         let states: Vec<ExecutionState> = (0..3)
             .map(|i| ExecutionState {
-                run_id: generate_id_with_prefix(&format!("run_{}", i)),
+                run_id: generate_id_with_prefix(&format!("run_{i}")),
                 function_id: generate_id_with_prefix("fn"),
                 status: ExecutionStatus::Running,
                 current_step: None,
@@ -390,7 +390,7 @@ mod tests {
         // Add multiple states
         for i in 0..5 {
             let state = ExecutionState {
-                run_id: generate_id_with_prefix(&format!("run_{}", i)),
+                run_id: generate_id_with_prefix(&format!("run_{i}")),
                 function_id: generate_id_with_prefix("fn"),
                 status: ExecutionStatus::Running,
                 current_step: None,
@@ -435,7 +435,7 @@ mod tests {
         // Add some states
         for i in 0..3 {
             let state = ExecutionState {
-                run_id: generate_id_with_prefix(&format!("run_{}", i)),
+                run_id: generate_id_with_prefix(&format!("run_{i}")),
                 function_id: generate_id_with_prefix("fn"),
                 status: ExecutionStatus::Running,
                 current_step: None,

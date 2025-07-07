@@ -305,7 +305,7 @@ mod tests {
     #[test]
     fn test_error_debug() {
         let fixture = StateError::validation("Invalid data");
-        let actual = format!("{:?}", fixture);
+        let actual = format!("{fixture:?}");
         assert!(actual.contains("ValidationError"));
         assert!(actual.contains("Invalid data"));
     }

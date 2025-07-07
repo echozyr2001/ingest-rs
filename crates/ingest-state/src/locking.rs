@@ -300,7 +300,7 @@ mod tests {
 
         // Acquire multiple locks
         for i in 0..5 {
-            let run_id = generate_id_with_prefix(&format!("run_{}", i));
+            let run_id = generate_id_with_prefix(&format!("run_{i}"));
             manager.acquire_lock(&run_id, 1, None).await.unwrap();
         }
 
