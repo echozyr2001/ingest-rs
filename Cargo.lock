@@ -1755,10 +1755,22 @@ dependencies = [
 name = "ingest-queue"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
+ "async-trait",
+ "chrono",
+ "dashmap",
+ "derive_setters",
+ "ingest-config",
  "ingest-core",
+ "ingest-storage",
+ "ingest-telemetry",
  "pretty_assertions",
  "serde",
+ "serde_json",
+ "thiserror 2.0.12",
  "tokio",
+ "tracing",
+ "uuid",
 ]
 
 [[package]]
