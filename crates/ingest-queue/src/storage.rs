@@ -267,7 +267,7 @@ mod tests {
     #[test]
     fn test_cache_key_generation() {
         let job_id = ingest_core::generate_id_with_prefix("job");
-        let expected_key = format!("queue:job:{}", job_id);
-        assert_eq!(expected_key, format!("queue:job:{}", job_id));
+        let expected_key = format!("queue:job:{job_id}");
+        assert_eq!(expected_key, format!("queue:job:{job_id}"));
     }
 }
