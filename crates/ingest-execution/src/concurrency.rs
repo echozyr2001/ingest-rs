@@ -472,7 +472,7 @@ mod tests {
         for i in 0..5 {
             let permit = fixture_controller
                 .acquire_permit(
-                    generate_id_with_prefix(&format!("run_{}", i)),
+                    generate_id_with_prefix(&format!("run_{i}")),
                     generate_id_with_prefix("fn"),
                     None,
                 )
