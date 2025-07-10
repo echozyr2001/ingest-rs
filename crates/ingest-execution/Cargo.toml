@@ -13,8 +13,19 @@ description = "Placeholder crate for the Inngest durable functions platform"
 
 [dependencies]
 ingest-core = { path = "../ingest-core" }
+ingest-state = { path = "../ingest-state" }
+ingest-queue = { path = "../ingest-queue" }
+ingest-events = { path = "../ingest-events" }
+ingest-expressions = { path = "../ingest-expressions" }
 tokio = { workspace = true }
 serde = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+async-trait = { workspace = true }
+tracing = { workspace = true }
+chrono = { workspace = true }
+serde_json = { workspace = true }
+derive_setters = "0.1"
 
 [dev-dependencies]
 pretty_assertions = { workspace = true }

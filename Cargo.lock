@@ -1658,10 +1658,21 @@ dependencies = [
 name = "ingest-execution"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
+ "async-trait",
+ "chrono",
+ "derive_setters",
  "ingest-core",
+ "ingest-events",
+ "ingest-expressions",
+ "ingest-queue",
+ "ingest-state",
  "pretty_assertions",
  "serde",
+ "serde_json",
+ "thiserror 2.0.12",
  "tokio",
+ "tracing",
 ]
 
 [[package]]
