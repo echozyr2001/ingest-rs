@@ -58,7 +58,6 @@ pub struct ExecutionConfig {
     pub config: HashMap<String, Json>,
 }
 
-
 /// Execution status
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum ExecutionStatus {
