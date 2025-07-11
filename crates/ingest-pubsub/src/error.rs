@@ -284,11 +284,7 @@ mod tests {
         ];
 
         for error in retryable_errors {
-            assert!(
-                error.is_retryable(),
-                "Error should be retryable: {:?}",
-                error
-            );
+            assert!(error.is_retryable(), "Error should be retryable: {error:?}",);
         }
 
         let non_retryable_errors = vec![
@@ -302,8 +298,7 @@ mod tests {
         for error in non_retryable_errors {
             assert!(
                 !error.is_retryable(),
-                "Error should not be retryable: {:?}",
-                error
+                "Error should not be retryable: {error:?}",
             );
         }
     }
