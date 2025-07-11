@@ -9,12 +9,22 @@ homepage.workspace = true
 documentation.workspace = true
 keywords.workspace = true
 categories.workspace = true
-description = "Placeholder crate for the Inngest durable functions platform"
+description = "Publish-subscribe messaging system for the Inngest durable functions platform"
 
 [dependencies]
 ingest-core = { path = "../ingest-core" }
+ingest-storage = { path = "../ingest-storage" }
+ingest-execution = { path = "../ingest-execution" }
 tokio = { workspace = true }
 serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+async-trait = { workspace = true }
+tracing = { workspace = true }
+derive_setters = { workspace = true }
 
 [dev-dependencies]
 pretty_assertions = { workspace = true }

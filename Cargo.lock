@@ -1756,10 +1756,20 @@ dependencies = [
 name = "ingest-pubsub"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
+ "async-trait",
+ "chrono",
+ "derive_setters",
  "ingest-core",
+ "ingest-execution",
+ "ingest-storage",
  "pretty_assertions",
  "serde",
+ "serde_json",
+ "thiserror 2.0.12",
  "tokio",
+ "tracing",
+ "uuid",
 ]
 
 [[package]]
