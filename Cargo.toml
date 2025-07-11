@@ -96,6 +96,17 @@ testcontainers = "0.24"
 # Development dependencies
 derive_setters = "0.1"
 
+# Authentication and security
+jsonwebtoken = "9.0"
+bcrypt = "0.17"
+headers = "0.4"
+
+# Validation
+validator = { version = "0.20", features = ["derive"] }
+
+# Testing utilities
+axum-test = "17.0"
+
 [profile.dev]
 opt-level = 0
 debug = true

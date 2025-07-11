@@ -9,12 +9,56 @@ homepage.workspace = true
 documentation.workspace = true
 keywords.workspace = true
 categories.workspace = true
-description = "Placeholder crate for the Inngest durable functions platform"
+description = "REST API layer for the Inngest durable functions platform"
 
 [dependencies]
+# Core dependencies
 ingest-core = { path = "../ingest-core" }
+ingest-events = { path = "../ingest-events" }
+ingest-execution = { path = "../ingest-execution" }
+ingest-state = { path = "../ingest-state" }
+ingest-queue = { path = "../ingest-queue" }
+ingest-config = { path = "../ingest-config" }
+ingest-telemetry = { path = "../ingest-telemetry" }
+
+# HTTP framework
+axum = { workspace = true }
+tower = { workspace = true }
+tower-http = { workspace = true, features = ["cors", "trace", "auth", "timeout"] }
+hyper = { workspace = true }
+
+# Async runtime
 tokio = { workspace = true }
+
+# Serialization
 serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Error handling
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+
+# Utilities
+uuid = { workspace = true }
+chrono = { workspace = true }
+url = { workspace = true }
+
+# Authentication and security
+jsonwebtoken = { workspace = true }
+bcrypt = { workspace = true }
+headers = { workspace = true }
+
+# Validation
+validator = { workspace = true }
+
+# Tracing
+tracing = { workspace = true }
+
+# Async traits
+async-trait = { workspace = true }
 
 [dev-dependencies]
 pretty_assertions = { workspace = true }
+tokio-test = { workspace = true }
+tower-test = "0.4"
+axum-test = { workspace = true }
