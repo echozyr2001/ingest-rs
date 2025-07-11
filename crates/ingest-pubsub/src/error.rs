@@ -337,7 +337,7 @@ mod tests {
     #[test]
     fn test_error_display() {
         let fixture = PubSubError::topic("Topic not found");
-        let actual = format!("{}", fixture);
+        let actual = format!("{fixture}");
         let expected = "Topic error: Topic not found";
         assert_eq!(actual, expected);
     }
@@ -345,7 +345,7 @@ mod tests {
     #[test]
     fn test_error_debug() {
         let fixture = PubSubError::topic("Topic not found");
-        let actual = format!("{:?}", fixture);
+        let actual = format!("{fixture:?}");
         assert!(actual.contains("Topic"));
         assert!(actual.contains("Topic not found"));
     }

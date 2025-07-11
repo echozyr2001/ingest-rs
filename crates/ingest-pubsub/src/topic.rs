@@ -427,7 +427,7 @@ mod tests {
     #[test]
     fn test_topic_pattern_display() {
         let pattern_fixture = TopicPattern::new("test.*");
-        let actual = format!("{}", pattern_fixture);
+        let actual = format!("{pattern_fixture}");
         let expected = "test.*";
         assert_eq!(actual, expected);
     }

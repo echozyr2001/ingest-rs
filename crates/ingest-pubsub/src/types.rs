@@ -346,7 +346,7 @@ mod tests {
     #[test]
     fn test_message_id_creation() {
         let actual = MessageId::new();
-        assert_ne!(format!("{}", actual), "");
+        assert_ne!(format!("{actual}"), "");
     }
 
     #[test]
@@ -360,7 +360,7 @@ mod tests {
     #[test]
     fn test_message_id_display() {
         let fixture = MessageId::new();
-        let actual = format!("{}", fixture);
+        let actual = format!("{fixture}");
         let expected = fixture.0.to_string();
         assert_eq!(actual, expected);
     }
@@ -368,7 +368,7 @@ mod tests {
     #[test]
     fn test_subscriber_id_creation() {
         let actual = SubscriberId::new();
-        assert_ne!(format!("{}", actual), "");
+        assert_ne!(format!("{actual}"), "");
     }
 
     #[test]
