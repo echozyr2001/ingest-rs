@@ -121,19 +121,47 @@ impl ProtocolNegotiator {
 
     /// Negotiate protocol version with client
     pub fn negotiate(&self, client_versions: &[ProtocolVersion]) -> Result<ProtocolVersion> {
-        // Find the best compatible version
+        let mut best_version: Option<ProtocolVersion> = None;
+
+        // Find the best mutually supported version
         for server_version in &self.supported_versions {
             for client_version in client_versions {
-                if let Some(compatible) = server_version.latest_compatible(client_version) {
-                    return Ok(compatible);
+                // Check if versions are exactly the same or if server can support client
+                if server_version == client_version {
+                    match &best_version {
+                        None => best_version = Some(server_version.clone()),
+                        Some(current_best) => {
+                            if server_version.major == current_best.major
+                                && server_version.minor > current_best.minor
+                            {
+                                best_version = Some(server_version.clone());
+                            }
+                        }
+                    }
+                } else if server_version.major == client_version.major
+                    && server_version.minor >= client_version.minor
+                {
+                    // Server version is backward compatible with client
+                    match &best_version {
+                        None => best_version = Some(server_version.clone()),
+                        Some(current_best) => {
+                            if server_version.major == current_best.major
+                                && server_version.minor > current_best.minor
+                            {
+                                best_version = Some(server_version.clone());
+                            }
+                        }
+                    }
                 }
             }
         }
 
-        // No compatible version found
-        Err(ConnectError::ProtocolNegotiation(
-            "No compatible protocol version found".to_string(),
-        ))
+        match best_version {
+            Some(version) => Ok(version),
+            None => Err(ConnectError::ProtocolNegotiation(
+                "No compatible protocol version found".to_string(),
+            )),
+        }
     }
 
     /// Get supported versions

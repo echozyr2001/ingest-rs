@@ -186,7 +186,8 @@ impl AuthService {
 
     /// Validate a JWT token
     pub fn validate_jwt_token(&self, token: &str) -> Result<Claims> {
-        let validation = Validation::default();
+        let mut validation = Validation::default();
+        validation.set_audience(&["inngest-sdk"]);
 
         decode::<Claims>(token, &self.decoding_key, &validation)
             .map(|data| data.claims)
