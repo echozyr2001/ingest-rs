@@ -55,10 +55,7 @@ impl ConnectServer {
         auth_service: AuthService,
         protocol_negotiator: ProtocolNegotiator,
     ) -> Self {
-        let manager = ConnectionManager::new(
-            config.clone(),
-            auth_service.clone(),
-        );
+        let manager = ConnectionManager::new(config.clone(), auth_service.clone());
 
         Self {
             config: Arc::new(config),
@@ -71,9 +68,9 @@ impl ConnectServer {
     /// Start the WebSocket server
     pub async fn start(&self) -> Result<()> {
         let bind_addr = format!("{}:{}", self.config.bind_address, self.config.port);
-        let listener = TcpListener::bind(&bind_addr).await.map_err(|e| {
-            ConnectError::Network(format!("Failed to bind to {bind_addr}: {e}"))
-        })?;
+        let listener = TcpListener::bind(&bind_addr)
+            .await
+            .map_err(|e| ConnectError::Network(format!("Failed to bind to {bind_addr}: {e}")))?;
 
         info!(bind_addr = %bind_addr, "WebSocket server starting");
 
