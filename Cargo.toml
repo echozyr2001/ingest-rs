@@ -36,6 +36,7 @@ categories = ["asynchronous", "web-programming", "development-tools"]
 # Core async runtime
 tokio = { version = "1.0", features = ["full"] }
 tokio-test = "0.4"
+futures = "0.3"
 
 # Serialization
 serde = { version = "1.0", features = ["derive"] }

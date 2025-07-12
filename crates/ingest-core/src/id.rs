@@ -56,6 +56,18 @@ pub fn generate_id_with_prefix(prefix: &str) -> Id {
     Id(format!("{}_{}", prefix, uuid::Uuid::new_v4()))
 }
 
+/// Function ID type
+pub type FunctionId = Id;
+
+/// Execution ID type  
+pub type ExecutionId = Id;
+
+/// Step ID type
+pub type StepId = Id;
+
+/// Event ID type
+pub type EventId = Id;
+
 #[cfg(test)]
 mod tests {
     use super::*;

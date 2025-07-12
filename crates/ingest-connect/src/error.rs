@@ -56,6 +56,10 @@ pub enum ConnectError {
     #[error("Rate limit exceeded: {0}")]
     RateLimit(String),
 
+    /// Too many connections
+    #[error("Too many connections")]
+    TooManyConnections,
+
     /// Internal server errors
     #[error("Internal server error: {0}")]
     Internal(String),

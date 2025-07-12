@@ -14,6 +14,7 @@ description = "REST API layer for the Inngest durable functions platform"
 [dependencies]
 # Core dependencies
 ingest-core = { path = "../ingest-core" }
+ingest-connect = { path = "../ingest-connect" }
 ingest-events = { path = "../ingest-events" }
 ingest-execution = { path = "../ingest-execution" }
 ingest-state = { path = "../ingest-state" }
@@ -29,6 +30,7 @@ hyper = { workspace = true }
 
 # Async runtime
 tokio = { workspace = true }
+futures = { workspace = true }
 
 # Serialization
 serde = { workspace = true }

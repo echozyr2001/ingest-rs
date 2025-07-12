@@ -33,6 +33,7 @@ pub mod config;
 pub mod error;
 pub mod handlers;
 pub mod middleware;
+pub mod realtime;
 pub mod routes;
 pub mod types;
 

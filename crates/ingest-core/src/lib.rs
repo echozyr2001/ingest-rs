@@ -24,7 +24,7 @@ pub mod traits;
 pub use error::{Error, Result};
 pub use event::{Event, EventData, EventId};
 pub use function::{Function, FunctionConfig, FunctionId, FunctionTrigger};
-pub use id::{Id, generate_id, generate_id_with_prefix};
+pub use id::{ExecutionId, Id, generate_id, generate_id_with_prefix};
 pub use step::{Step, StepConfig, StepId, StepOutput, StepStatus};
 pub use traits::{EventHandler, QueueProvider, StateManager};
 
