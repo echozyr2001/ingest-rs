@@ -408,9 +408,27 @@ fn contains_sql_injection_patterns(input: &str) -> bool {
     ];
 
     let input_lower = input.to_lowercase();
-    sql_patterns
+
+    // Check original input
+    if sql_patterns
         .iter()
         .any(|&pattern| input_lower.contains(pattern))
+    {
+        return true;
+    }
+
+    // Also check URL-decoded input to catch encoded attacks
+    // Simple percent-decoding for common cases
+    let decoded = input
+        .replace("%27", "'")
+        .replace("%20", " ")
+        .replace("%3D", "=")
+        .replace("%3d", "=");
+
+    let decoded_lower = decoded.to_lowercase();
+    sql_patterns
+        .iter()
+        .any(|&pattern| decoded_lower.contains(pattern))
 }
 
 #[cfg(test)]
@@ -553,7 +571,7 @@ mod tests {
 
         let request = Request::builder()
             .method(Method::GET)
-            .uri("/test?id=' or '1'='1")
+            .uri("/test?id=%27%20or%20%271%27=%271")
             .body(Body::empty())
             .unwrap();
 
