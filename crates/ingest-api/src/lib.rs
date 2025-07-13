@@ -30,11 +30,15 @@
 
 pub mod api_server;
 pub mod config;
+pub mod docs;
 pub mod error;
+pub mod graphql;
 pub mod handlers;
 pub mod middleware;
+pub mod rate_limit;
 pub mod realtime;
 pub mod routes;
+pub mod security;
 pub mod types;
 
 // Re-export public API

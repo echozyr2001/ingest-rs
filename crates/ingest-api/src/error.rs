@@ -29,6 +29,9 @@ pub enum ApiError {
     #[error("Rate limit exceeded")]
     RateLimit,
 
+    #[error("Rate limit exceeded: {0}")]
+    RateLimitExceeded(String),
+
     #[error("Internal server error: {0}")]
     Internal(#[from] anyhow::Error),
 
@@ -71,6 +74,7 @@ impl ApiError {
             ApiError::NotFound(_) => StatusCode::NOT_FOUND,
             ApiError::Conflict(_) => StatusCode::CONFLICT,
             ApiError::RateLimit => StatusCode::TOO_MANY_REQUESTS,
+            ApiError::RateLimitExceeded(_) => StatusCode::TOO_MANY_REQUESTS,
             ApiError::ServiceUnavailable(_) => StatusCode::SERVICE_UNAVAILABLE,
             _ => StatusCode::INTERNAL_SERVER_ERROR,
         }
@@ -85,6 +89,7 @@ impl ApiError {
             ApiError::NotFound(_) => "NOT_FOUND",
             ApiError::Conflict(_) => "CONFLICT",
             ApiError::RateLimit => "RATE_LIMIT_EXCEEDED",
+            ApiError::RateLimitExceeded(_) => "RATE_LIMIT_EXCEEDED",
             ApiError::Internal(_) => "INTERNAL_ERROR",
             ApiError::EventProcessing(_) => "EVENT_PROCESSING_ERROR",
             ApiError::Execution(_) => "EXECUTION_ERROR",
