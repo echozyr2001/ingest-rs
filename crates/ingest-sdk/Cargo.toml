@@ -13,8 +13,27 @@ description = "Placeholder crate for the Inngest durable functions platform"
 
 [dependencies]
 ingest-core = { path = "../ingest-core" }
-tokio = { workspace = true }
+ingest-api = { path = "../ingest-api" }
+tokio = { workspace = true, features = ["full"] }
 serde = { workspace = true }
+serde_json = { workspace = true }
+reqwest = { version = "0.12", features = ["json", "rustls-tls"] }
+url = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+async-trait = { workspace = true }
+tracing = { workspace = true }
+derive_setters = { workspace = true }
+axum = { workspace = true }
+
+# Proc macros for function definitions
+syn = "2.0"
+quote = "1.0"
+proc-macro2 = "1.0"
 
 [dev-dependencies]
 pretty_assertions = { workspace = true }
+tokio-test = { workspace = true }
+axum-test = { workspace = true }
