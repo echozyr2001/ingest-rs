@@ -107,7 +107,7 @@ mod tests {
 
         // Note: This test might pass on some systems if port 1 is actually available
         // In a real scenario, we'd use a more sophisticated approach
-        println!("Port 1 availability test result: {:?}", actual);
+        println!("Port 1 availability test result: {actual:?}");
 
         // For now, we'll just ensure the function doesn't panic
         assert!(actual.is_ok() || actual.is_err());
