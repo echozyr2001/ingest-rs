@@ -2608,10 +2608,41 @@ dependencies = [
 name = "ingest-server"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
+ "async-trait",
+ "chrono",
+ "clap",
+ "config",
+ "derive_setters",
+ "futures",
+ "ingest-api",
+ "ingest-config",
+ "ingest-connect",
  "ingest-core",
+ "ingest-execution",
+ "ingest-history",
+ "ingest-monitoring",
+ "ingest-pubsub",
+ "ingest-queue",
+ "ingest-state",
+ "ingest-storage",
+ "ingest-telemetry",
+ "num_cpus",
  "pretty_assertions",
+ "reqwest",
  "serde",
+ "serde_json",
+ "signal-hook",
+ "signal-hook-tokio",
+ "tempfile",
+ "testcontainers",
+ "thiserror 2.0.12",
  "tokio",
+ "tokio-test",
+ "toml",
+ "tracing",
+ "tracing-subscriber",
+ "uuid",
 ]
 
 [[package]]
@@ -4087,7 +4118,7 @@ dependencies = [
  "once_cell",
  "socket2 0.5.10",
  "tracing",
- "windows-sys 0.52.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -4906,12 +4937,34 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64"
 
 [[package]]
+name = "signal-hook"
+version = "0.3.18"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d881a16cf4426aa584979d30bd82cb33429027e42122b169753d6ef1085ed6e2"
+dependencies = [
+ "libc",
+ "signal-hook-registry",
+]
+
+[[package]]
 name = "signal-hook-registry"
 version = "1.4.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9203b8055f63a2a00e2f593bb0510367fe707d7ff1e5c872de2f537b339e5410"
 dependencies = [
  "libc",
+]
+
+[[package]]
+name = "signal-hook-tokio"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "213241f76fb1e37e27de3b6aa1b068a2c333233b59cca6634f634b80a27ecf1e"
+dependencies = [
+ "futures-core",
+ "libc",
+ "signal-hook",
+ "tokio",
 ]
 
 [[package]]

@@ -9,12 +9,64 @@ homepage.workspace = true
 documentation.workspace = true
 keywords.workspace = true
 categories.workspace = true
-description = "Placeholder crate for the Inngest durable functions platform"
+description = "Main server binary for the Inngest durable functions platform"
+
+[[bin]]
+name = "ingest-server"
+path = "src/main.rs"
 
 [dependencies]
+# Core platform crates
 ingest-core = { path = "../ingest-core" }
-tokio = { workspace = true }
+ingest-config = { path = "../ingest-config" }
+ingest-storage = { path = "../ingest-storage" }
+ingest-telemetry = { path = "../ingest-telemetry" }
+ingest-monitoring = { path = "../ingest-monitoring" }
+ingest-api = { path = "../ingest-api" }
+ingest-connect = { path = "../ingest-connect" }
+ingest-execution = { path = "../ingest-execution" }
+ingest-state = { path = "../ingest-state" }
+ingest-queue = { path = "../ingest-queue" }
+ingest-pubsub = { path = "../ingest-pubsub" }
+ingest-history = { path = "../ingest-history" }
+
+# Runtime and async
+tokio = { workspace = true, features = ["full", "signal"] }
+futures = { workspace = true }
+async-trait = { workspace = true }
+
+# Configuration
 serde = { workspace = true }
+serde_json = { workspace = true }
+toml = { workspace = true }
+config = { workspace = true }
+
+# CLI
+clap = { version = "4.0", features = ["derive", "env"] }
+
+# Error handling
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+
+# Utilities
+tracing = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+derive_setters = { workspace = true }
+
+# Signal handling
+signal-hook = "0.3"
+signal-hook-tokio = { version = "0.3", features = ["futures-v0_3"] }
+# System utilities
+num_cpus = "1.0"
+# HTTP client for health checks
+reqwest = { version = "0.12", features = ["json", "rustls-tls"] }
+
+# Logging
+tracing-subscriber = { workspace = true, features = ["env-filter", "json"] }
 
 [dev-dependencies]
 pretty_assertions = { workspace = true }
+tokio-test = { workspace = true }
+testcontainers = { workspace = true }
+tempfile = "3.0"
