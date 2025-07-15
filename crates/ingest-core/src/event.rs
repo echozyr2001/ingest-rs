@@ -2,6 +2,7 @@ use crate::{DateTime, Id, Json, Result};
 use derive_setters::Setters;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::ops::Index;
 
 /// Event identifier type
 pub type EventId = Id;
@@ -14,6 +15,14 @@ pub struct EventData {
     pub data: Json,
     /// Additional metadata
     pub metadata: HashMap<String, String>,
+}
+
+impl Index<&str> for EventData {
+    type Output = Json;
+
+    fn index(&self, key: &str) -> &Self::Output {
+        &self.data[key]
+    }
 }
 
 impl EventData {

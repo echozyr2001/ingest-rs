@@ -9,15 +9,16 @@
 //! ## Quick Start
 //!
 //! ```rust,no_run
-//! use ingest_sdk::{IngestClient, ClientConfig, Event};
+//! use ingest_sdk::{IngestClient, ClientConfig, EventBuilder};
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
 //!     let config = ClientConfig::new("your-api-key");
 //!     let client = IngestClient::new(config).await?;
 //!     
-//!     let event = Event::new("user.created")
-//!         .data(serde_json::json!({"user_id": "123", "email": "user@example.com"}));
+//!     let event = EventBuilder::new("user.created")
+//!         .data(serde_json::json!({"user_id": "123", "email": "user@example.com"}))
+//!         .build()?;
 //!     
 //!     let event_id = client.publish_event(event).await?;
 //!     println!("Published event: {}", event_id);
@@ -29,9 +30,9 @@
 //! ## Function Definition
 //!
 //! ```rust,no_run
-//! use ingest_sdk::{function, Event, StepContext, Result};
+//! use ingest_sdk::{EventBuilder, Event, StepContext, StepContextTrait, Result};
 //!
-//! #[function(trigger = "user.created")]
+//! // Example function using the SDK
 //! async fn welcome_user(event: Event, step: &mut StepContext) -> Result<()> {
 //!     let user_id = event.data["user_id"].as_str().unwrap();
 //!     
@@ -45,6 +46,17 @@
 //!         send_followup_email(user_id).await
 //!     }).await?;
 //!     
+//!     Ok(())
+//! }
+//!
+//! // Example helper functions
+//! async fn send_welcome_email(user_id: &str) -> Result<()> {
+//!     println!("Sending welcome email to user: {}", user_id);
+//!     Ok(())
+//! }
+//!
+//! async fn send_followup_email(user_id: &str) -> Result<()> {
+//!     println!("Sending followup email to user: {}", user_id);
 //!     Ok(())
 //! }
 //! ```
