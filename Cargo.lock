@@ -2430,16 +2430,6 @@ checksum = "b9e0384b61958566e926dc50660321d12159025e767c18e043daf26b70104c39"
 
 [[package]]
 name = "idna"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "634d9b1461af396cad843f47fdba5597a4f9e6ddd4bfb6ff5d85028c25cb12f6"
-dependencies = [
- "unicode-bidi",
- "unicode-normalization",
-]
-
-[[package]]
-name = "idna"
 version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "686f825264d630750a544639377bae737628043f20d38bbc029e8f29ea968a7e"
@@ -2537,7 +2527,7 @@ dependencies = [
  "utoipa",
  "utoipa-swagger-ui",
  "uuid",
- "validator 0.20.0",
+ "validator",
 ]
 
 [[package]]
@@ -2773,7 +2763,7 @@ dependencies = [
  "tokio",
  "tokio-test",
  "toml",
- "validator 0.18.1",
+ "validator",
  "walkdir",
 ]
 
@@ -2915,7 +2905,7 @@ dependencies = [
  "tokio",
  "tokio-test",
  "uuid",
- "validator 0.18.1",
+ "validator",
  "x25519-dalek",
 ]
 
@@ -3181,7 +3171,7 @@ dependencies = [
  "email_address",
  "fancy-regex",
  "fraction",
- "idna 1.0.3",
+ "idna",
  "itoa",
  "num-cmp",
  "num-traits",
@@ -6574,7 +6564,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32f8b686cadd1473f4bd0117a5d28d36b1ade384ea9b5069a1c40aefed7fda60"
 dependencies = [
  "form_urlencoded",
- "idna 1.0.3",
+ "idna",
  "percent-encoding",
  "serde",
 ]
@@ -6663,48 +6653,18 @@ dependencies = [
 
 [[package]]
 name = "validator"
-version = "0.18.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "db79c75af171630a3148bd3e6d7c4f42b6a9a014c2945bc5ed0020cbb8d9478e"
-dependencies = [
- "idna 0.5.0",
- "once_cell",
- "regex",
- "serde",
- "serde_derive",
- "serde_json",
- "url",
- "validator_derive 0.18.2",
-]
-
-[[package]]
-name = "validator"
 version = "0.20.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "43fb22e1a008ece370ce08a3e9e4447a910e92621bb49b85d6e48a45397e7cfa"
 dependencies = [
- "idna 1.0.3",
+ "idna",
  "once_cell",
  "regex",
  "serde",
  "serde_derive",
  "serde_json",
  "url",
- "validator_derive 0.20.0",
-]
-
-[[package]]
-name = "validator_derive"
-version = "0.18.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "df0bcf92720c40105ac4b2dda2a4ea3aa717d4d6a862cc217da653a4bd5c6b10"
-dependencies = [
- "darling",
- "once_cell",
- "proc-macro-error",
- "proc-macro2",
- "quote",
- "syn 2.0.104",
+ "validator_derive",
 ]
 
 [[package]]

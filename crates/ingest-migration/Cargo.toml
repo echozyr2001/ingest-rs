@@ -22,7 +22,11 @@ toml = "0.8"
 config = "0.14"
 
 # Database migration
-sqlx = { version = "0.8", features = ["postgres", "runtime-tokio-rustls", "migrate"] }
+sqlx = { version = "0.8", features = [
+  "postgres",
+  "runtime-tokio-rustls",
+  "migrate",
+] }
 
 # CLI tools
 clap = { version = "4.0", features = ["derive"] }
@@ -30,7 +34,7 @@ indicatif = "0.17"
 console = "0.15"
 
 # Validation
-validator = { version = "0.18", features = ["derive"] }
+validator = { workspace = true }
 regex = "1.0"
 
 # Testing
