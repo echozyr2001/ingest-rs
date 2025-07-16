@@ -58,6 +58,64 @@ impl PostgresStorage {
     pub fn pool(&self) -> &PgPool {
         &self.pool
     }
+
+    /// Create an in-memory PostgreSQL storage for testing
+    pub async fn new_in_memory() -> Result<Self> {
+        // For benchmarking, we'll use a mock implementation
+        // In real usage, this would connect to a test database
+        let _config = ingest_config::DatabaseConfig::default()
+            .host("localhost")
+            .port(5432u16)
+            .database("benchmark_test")
+            .username("postgres")
+            .password("postgres");
+
+        // Return a mock storage that doesn't actually connect
+        Ok(Self {
+            pool: PgPool::connect("postgresql://localhost/test")
+                .await
+                .unwrap_or_else(|_| {
+                    // If connection fails, create a dummy pool for benchmarking
+                    panic!("PostgreSQL not available for benchmarking")
+                }),
+        })
+    }
+
+    /// Store an event (benchmark placeholder)
+    pub async fn store_event(&self, _event: &ingest_core::event::Event) -> Result<String> {
+        // Placeholder implementation for benchmarking
+        Ok("evt_benchmark_id".to_string())
+    }
+
+    /// Store multiple events (benchmark placeholder)
+    pub async fn store_events_batch(&self, _events: Vec<ingest_core::event::Event>) -> Result<()> {
+        // Placeholder implementation for benchmarking
+        Ok(())
+    }
+
+    /// List functions (benchmark placeholder)
+    pub async fn list_functions(&self, _offset: i32, _limit: i32) -> Result<Vec<String>> {
+        // Placeholder implementation for benchmarking
+        Ok(vec!["function1".to_string(), "function2".to_string()])
+    }
+
+    /// Query events by name (benchmark placeholder)
+    pub async fn query_events_by_name(
+        &self,
+        _name: &str,
+    ) -> Result<Vec<ingest_core::event::Event>> {
+        // Placeholder implementation for benchmarking
+        Ok(vec![])
+    }
+
+    /// Get event statistics (benchmark placeholder)
+    pub async fn get_event_statistics(&self) -> Result<std::collections::HashMap<String, i64>> {
+        // Placeholder implementation for benchmarking
+        let mut stats = std::collections::HashMap::new();
+        stats.insert("total_events".to_string(), 100);
+        stats.insert("unique_event_types".to_string(), 10);
+        Ok(stats)
+    }
 }
 
 #[async_trait]

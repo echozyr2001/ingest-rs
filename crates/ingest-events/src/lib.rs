@@ -144,3 +144,72 @@ pub mod prelude {
     };
     pub use ingest_core::{Event, EventData, EventHandler};
 }
+
+/// Event batch for bulk operations
+#[derive(Debug, Clone)]
+pub struct EventBatch {
+    events: Vec<ingest_core::Event>,
+}
+
+impl EventBatch {
+    /// Create a new event batch
+    pub fn new(events: Vec<ingest_core::Event>) -> Self {
+        Self { events }
+    }
+
+    /// Get events in the batch
+    pub fn events(&self) -> &[ingest_core::Event] {
+        &self.events
+    }
+
+    /// Get the number of events in the batch
+    pub fn len(&self) -> usize {
+        self.events.len()
+    }
+
+    /// Check if the batch is empty
+    pub fn is_empty(&self) -> bool {
+        self.events.is_empty()
+    }
+}
+
+/// Event ingestion service for handling event intake
+#[derive(Debug, Clone)]
+pub struct EventIngestionService {
+    processor: EventProcessor,
+}
+
+impl Default for EventIngestionService {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl EventIngestionService {
+    /// Create a new event ingestion service
+    pub fn new() -> Self {
+        Self {
+            processor: create_basic_processor(),
+        }
+    }
+
+    /// Create an in-memory event ingestion service for benchmarking
+    pub async fn new_in_memory() -> ingest_core::Result<Self> {
+        Ok(Self::new())
+    }
+
+    /// Ingest a single event
+    pub async fn ingest_event(&self, event: ingest_core::Event) -> Result<ProcessingResult> {
+        self.processor.process_event(event).await
+    }
+
+    /// Ingest a batch of events
+    pub async fn ingest_batch(&self, batch: EventBatch) -> Result<Vec<ProcessingResult>> {
+        let mut results = Vec::new();
+        for event in batch.events() {
+            let result = self.processor.process_event(event.clone()).await?;
+            results.push(result);
+        }
+        Ok(results)
+    }
+}

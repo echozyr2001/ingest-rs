@@ -117,6 +117,34 @@ pub struct EventProcessor {
     stats: Arc<RwLock<ProcessingStats>>,
 }
 
+impl std::fmt::Debug for EventProcessor {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("EventProcessor")
+            .field("config", &self.config)
+            .field("validator", &"EventValidator")
+            .field("routing_engine", &"RoutingEngine")
+            .field("serializer", &"EventSerializer")
+            .field("stages", &format!("{} stages", self.stages.len()))
+            .field("handlers", &format!("{} handlers", self.handlers.len()))
+            .field("stats", &"ProcessingStats")
+            .finish()
+    }
+}
+
+impl Clone for EventProcessor {
+    fn clone(&self) -> Self {
+        Self {
+            config: self.config.clone(),
+            validator: self.validator.clone(),
+            routing_engine: self.routing_engine.clone(),
+            serializer: self.serializer.clone(),
+            stages: self.stages.clone(),
+            handlers: self.handlers.clone(),
+            stats: self.stats.clone(),
+        }
+    }
+}
+
 impl EventProcessor {
     /// Create new event processor
     pub fn new(config: ProcessorConfig) -> Self {

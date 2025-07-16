@@ -97,6 +97,16 @@ impl ApiServer {
         let config = ApiConfig::default();
         Self::new(config).await
     }
+
+    /// Create an in-memory API server for benchmarking
+    pub async fn new_in_memory() -> Result<Self> {
+        let config = ApiConfig {
+            bind_address: "127.0.0.1".to_string(),
+            port: 0, // Use random port for testing
+            ..Default::default()
+        };
+        Self::new(config).await
+    }
 }
 
 /// Builder for creating API servers with custom configuration

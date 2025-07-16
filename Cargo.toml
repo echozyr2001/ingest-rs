@@ -1,5 +1,8 @@
 [workspace]
 members = [
+  "crates/ingest-benchmarks",
+  "crates/ingest-security",
+  "crates/ingest-migration",
   "crates/ingest-core",
   "crates/ingest-config",
   "crates/ingest-storage",

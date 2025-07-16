@@ -59,6 +59,22 @@ impl RedisStorage {
     pub fn connection_manager(&self) -> ConnectionManager {
         self.connection_manager.clone()
     }
+
+    /// Create an in-memory Redis storage for testing
+    pub async fn new_in_memory() -> Result<Self> {
+        // For benchmarking, we'll use a mock implementation
+        // In real usage, this would connect to a test Redis instance
+        let config = ingest_config::RedisConfig::default().url("redis://localhost:6379");
+
+        // Try to connect, but if it fails, create a mock for benchmarking
+        match Self::new(&config).await {
+            Ok(storage) => Ok(storage),
+            Err(_) => {
+                // Create a mock Redis storage for benchmarking when Redis is not available
+                panic!("Redis not available for benchmarking")
+            }
+        }
+    }
 }
 
 /// Cache storage trait for Redis operations

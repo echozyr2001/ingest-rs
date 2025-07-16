@@ -8,10 +8,129 @@ use crate::{
 };
 use async_trait::async_trait;
 use ingest_core::{Function, Id, StateManager, Step, StepOutput};
-use ingest_queue::CoreQueueManager;
-use std::sync::Arc;
+use ingest_queue::{
+    CoreQueueManager, JobId, JobStatus, QueueJob, QueueStats, QueueStorage, TenantId,
+    TenantManager, TenantStats,
+};
+use std::{collections::HashMap, sync::Arc};
 use tokio::sync::RwLock;
 use tracing::{debug, error, info, warn};
+
+// Mock implementations for testing and benchmarking
+#[derive(Debug)]
+struct MockQueueStorage;
+
+#[async_trait::async_trait]
+impl QueueStorage for MockQueueStorage {
+    async fn store_job(&self, _job: &QueueJob) -> ingest_core::Result<()> {
+        Ok(())
+    }
+
+    async fn retrieve_job(&self, _job_id: &JobId) -> ingest_core::Result<Option<QueueJob>> {
+        Ok(None)
+    }
+
+    async fn update_job(&self, _job: &QueueJob) -> ingest_core::Result<()> {
+        Ok(())
+    }
+
+    async fn delete_job(&self, _job_id: &JobId) -> ingest_core::Result<()> {
+        Ok(())
+    }
+
+    async fn list_jobs(
+        &self,
+        _tenant_id: Option<&TenantId>,
+        _status: Option<JobStatus>,
+        _limit: Option<usize>,
+    ) -> ingest_core::Result<Vec<QueueJob>> {
+        Ok(vec![])
+    }
+
+    async fn get_stats(&self) -> ingest_core::Result<QueueStats> {
+        Ok(QueueStats::default())
+    }
+}
+
+#[derive(Debug)]
+struct MockTenantManager;
+
+#[async_trait::async_trait]
+impl TenantManager for MockTenantManager {
+    async fn can_enqueue(&self, _tenant_id: &TenantId) -> ingest_core::Result<bool> {
+        Ok(true)
+    }
+
+    async fn record_job(&self, _tenant_id: &TenantId, _job: &QueueJob) -> ingest_core::Result<()> {
+        Ok(())
+    }
+
+    async fn get_next_tenant(&self) -> ingest_core::Result<Option<TenantId>> {
+        Ok(None)
+    }
+
+    async fn get_tenant_stats(&self, _tenant_id: &TenantId) -> ingest_core::Result<TenantStats> {
+        Ok(TenantStats::default())
+    }
+}
+
+#[derive(Debug)]
+struct MockStateManager {
+    data: Arc<tokio::sync::RwLock<HashMap<String, serde_json::Value>>>,
+}
+
+impl MockStateManager {
+    fn new() -> Self {
+        Self {
+            data: Arc::new(tokio::sync::RwLock::new(HashMap::new())),
+        }
+    }
+}
+
+#[async_trait::async_trait]
+impl StateManager for MockStateManager {
+    async fn save_state(&self, key: &str, data: &serde_json::Value) -> ingest_core::Result<()> {
+        let mut storage = self.data.write().await;
+        storage.insert(key.to_string(), data.clone());
+        Ok(())
+    }
+
+    async fn load_state(&self, key: &str) -> ingest_core::Result<Option<serde_json::Value>> {
+        let storage = self.data.read().await;
+        Ok(storage.get(key).cloned())
+    }
+
+    async fn delete_state(&self, key: &str) -> ingest_core::Result<()> {
+        let mut storage = self.data.write().await;
+        storage.remove(key);
+        Ok(())
+    }
+
+    async fn state_exists(&self, key: &str) -> ingest_core::Result<bool> {
+        let storage = self.data.read().await;
+        Ok(storage.contains_key(key))
+    }
+
+    async fn list_state_keys(&self, prefix: Option<&str>) -> ingest_core::Result<Vec<String>> {
+        let storage = self.data.read().await;
+        let keys: Vec<String> = if let Some(prefix) = prefix {
+            storage
+                .keys()
+                .filter(|k| k.starts_with(prefix))
+                .cloned()
+                .collect()
+        } else {
+            storage.keys().cloned().collect()
+        };
+        Ok(keys)
+    }
+
+    async fn clear_all_state(&self) -> ingest_core::Result<()> {
+        let mut storage = self.data.write().await;
+        storage.clear();
+        Ok(())
+    }
+}
 
 /// Main execution engine trait
 #[async_trait]
@@ -82,6 +201,18 @@ impl DefaultExecutionEngine {
             concurrency_controller: ConcurrencyController::with_defaults(),
             active_executions: Arc::new(RwLock::new(std::collections::HashMap::new())),
         })
+    }
+
+    /// Create an in-memory execution engine for benchmarking
+    pub async fn new_in_memory() -> Result<Self> {
+        // Create mock state manager and queue manager for benchmarking
+        let state_manager: Arc<dyn StateManager> = Arc::new(MockStateManager::new());
+        let queue_storage: Arc<dyn ingest_queue::QueueStorage> = Arc::new(MockQueueStorage);
+        let tenant_manager: Arc<dyn ingest_queue::TenantManager> = Arc::new(MockTenantManager);
+        let config = ingest_queue::QueueConfig::default();
+        let queue_manager = Arc::new(CoreQueueManager::new(queue_storage, tenant_manager, config));
+
+        Self::new(state_manager, queue_manager).await
     }
 
     /// Execute function steps in sequence
@@ -390,137 +521,8 @@ mod tests {
     use super::*;
     use crate::Event;
     use ingest_core::generate_id_with_prefix;
-    use ingest_queue::{
-        CoreQueueManager, JobId, JobStatus, QueueConfig, QueueJob, QueueStats, QueueStorage,
-        TenantId, TenantManager, TenantStats,
-    };
+    use ingest_queue::QueueConfig;
     use pretty_assertions::assert_eq;
-    use std::collections::HashMap;
-
-    // Mock queue storage for testing
-    #[derive(Debug)]
-    struct MockQueueStorage;
-
-    #[async_trait::async_trait]
-    impl QueueStorage for MockQueueStorage {
-        async fn store_job(&self, _job: &QueueJob) -> ingest_core::Result<()> {
-            Ok(())
-        }
-
-        async fn retrieve_job(&self, _job_id: &JobId) -> ingest_core::Result<Option<QueueJob>> {
-            Ok(None)
-        }
-
-        async fn update_job(&self, _job: &QueueJob) -> ingest_core::Result<()> {
-            Ok(())
-        }
-
-        async fn delete_job(&self, _job_id: &JobId) -> ingest_core::Result<()> {
-            Ok(())
-        }
-
-        async fn list_jobs(
-            &self,
-            _tenant_id: Option<&TenantId>,
-            _status: Option<JobStatus>,
-            _limit: Option<usize>,
-        ) -> ingest_core::Result<Vec<QueueJob>> {
-            Ok(vec![])
-        }
-
-        async fn get_stats(&self) -> ingest_core::Result<QueueStats> {
-            Ok(QueueStats::default())
-        }
-    }
-
-    // Mock tenant manager for testing
-    #[derive(Debug)]
-    struct MockTenantManager;
-
-    #[async_trait::async_trait]
-    impl TenantManager for MockTenantManager {
-        async fn can_enqueue(&self, _tenant_id: &TenantId) -> ingest_core::Result<bool> {
-            Ok(true)
-        }
-
-        async fn record_job(
-            &self,
-            _tenant_id: &TenantId,
-            _job: &QueueJob,
-        ) -> ingest_core::Result<()> {
-            Ok(())
-        }
-
-        async fn get_next_tenant(&self) -> ingest_core::Result<Option<TenantId>> {
-            Ok(None)
-        }
-
-        async fn get_tenant_stats(
-            &self,
-            _tenant_id: &TenantId,
-        ) -> ingest_core::Result<TenantStats> {
-            Ok(TenantStats::default())
-        }
-    }
-
-    // Mock state manager for testing
-    #[derive(Debug)]
-    struct MockStateManager {
-        data: Arc<tokio::sync::RwLock<HashMap<String, serde_json::Value>>>,
-    }
-
-    impl MockStateManager {
-        fn new() -> Self {
-            Self {
-                data: Arc::new(tokio::sync::RwLock::new(HashMap::new())),
-            }
-        }
-    }
-
-    #[async_trait::async_trait]
-    impl StateManager for MockStateManager {
-        async fn save_state(&self, key: &str, data: &serde_json::Value) -> ingest_core::Result<()> {
-            let mut storage = self.data.write().await;
-            storage.insert(key.to_string(), data.clone());
-            Ok(())
-        }
-
-        async fn load_state(&self, key: &str) -> ingest_core::Result<Option<serde_json::Value>> {
-            let storage = self.data.read().await;
-            Ok(storage.get(key).cloned())
-        }
-
-        async fn delete_state(&self, key: &str) -> ingest_core::Result<()> {
-            let mut storage = self.data.write().await;
-            storage.remove(key);
-            Ok(())
-        }
-
-        async fn state_exists(&self, key: &str) -> ingest_core::Result<bool> {
-            let storage = self.data.read().await;
-            Ok(storage.contains_key(key))
-        }
-
-        async fn list_state_keys(&self, prefix: Option<&str>) -> ingest_core::Result<Vec<String>> {
-            let storage = self.data.read().await;
-            let keys: Vec<String> = if let Some(prefix) = prefix {
-                storage
-                    .keys()
-                    .filter(|k| k.starts_with(prefix))
-                    .cloned()
-                    .collect()
-            } else {
-                storage.keys().cloned().collect()
-            };
-            Ok(keys)
-        }
-
-        async fn clear_all_state(&self) -> ingest_core::Result<()> {
-            let mut storage = self.data.write().await;
-            storage.clear();
-            Ok(())
-        }
-    }
 
     async fn create_test_engine() -> DefaultExecutionEngine {
         let state_manager = Arc::new(MockStateManager::new());
