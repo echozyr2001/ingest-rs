@@ -410,12 +410,14 @@ impl Service for PubSubService {
 
 struct ApiService {
     name: String,
+    config: crate::config::ApiConfig,
 }
 
 impl ApiService {
-    async fn new(_config: &crate::config::ApiConfig) -> Result<Self> {
+    async fn new(config: &crate::config::ApiConfig) -> Result<Self> {
         Ok(Self {
             name: "api".to_string(),
+            config: config.clone(),
         })
     }
 }
@@ -423,17 +425,64 @@ impl ApiService {
 #[async_trait]
 impl Service for ApiService {
     async fn start(&self) -> Result<()> {
-        info!("Starting API service");
+        info!(
+            "Starting API service on {}:{}",
+            self.config.bind_address, self.config.port
+        );
+
+        // Create API server configuration
+        let api_config = ingest_api::ApiConfig {
+            bind_address: self.config.bind_address.clone(),
+            port: self.config.port,
+            request_timeout: self.config.request_timeout,
+            max_request_size: self.config.max_request_size,
+            ..Default::default()
+        };
+
+        // Create and start the API server
+        let server =
+            ingest_api::ApiServer::new(api_config)
+                .await
+                .map_err(|e| ServerError::Service {
+                    service: "api".to_string(),
+                    error: format!("Failed to create API server: {}", e),
+                })?;
+
+        let addr = format!("{}:{}", self.config.bind_address, self.config.port);
+        let addr_for_log = addr.clone();
+
+        // Start the server in a background task
+        tokio::spawn(async move {
+            if let Err(e) = server.serve(&addr).await {
+                tracing::error!("API server error: {}", e);
+            }
+        });
+
+        // Give the server a moment to start
+        tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+
+        info!("API server started successfully on {}", addr_for_log);
         Ok(())
     }
 
     async fn stop(&self) -> Result<()> {
         info!("Stopping API service");
+        // TODO: Implement graceful shutdown
         Ok(())
     }
 
     async fn health_check(&self) -> HealthStatus {
-        HealthStatus::Healthy
+        // Try to make a request to the health endpoint
+        let addr = format!(
+            "http://{}:{}/health",
+            self.config.bind_address, self.config.port
+        );
+
+        match reqwest::get(&addr).await {
+            Ok(response) if response.status().is_success() => HealthStatus::Healthy,
+            Ok(_) => HealthStatus::Degraded("Health endpoint returned error".to_string()),
+            Err(_) => HealthStatus::Unhealthy("Cannot reach API server".to_string()),
+        }
     }
 
     fn name(&self) -> &str {
