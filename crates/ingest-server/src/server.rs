@@ -445,7 +445,7 @@ impl Service for ApiService {
                 .await
                 .map_err(|e| ServerError::Service {
                     service: "api".to_string(),
-                    error: format!("Failed to create API server: {}", e),
+                    error: format!("Failed to create API server: {e}"),
                 })?;
 
         let addr = format!("{}:{}", self.config.bind_address, self.config.port);
