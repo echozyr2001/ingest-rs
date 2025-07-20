@@ -1,0 +1,19 @@
+[package]
+name = "inngest-queue"
+version = "0.1.0"
+edition = "2021"
+description = "Queue system for Inngest function execution"
+
+[dependencies]
+inngest-core = { path = "../inngest-core" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+ulid = { workspace = true }
+chrono = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+async-trait = { workspace = true }
+tokio = { workspace = true }
+redis = { workspace = true }
+tracing = { workspace = true }

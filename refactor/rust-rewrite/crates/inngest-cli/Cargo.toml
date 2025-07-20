@@ -1,0 +1,30 @@
+[package]
+name = "inngest-cli"
+version = "0.1.0"
+edition = "2021"
+description = "CLI commands for Inngest"
+
+[dependencies]
+inngest-core = { path = "../inngest-core" }
+inngest-devserver = { path = "../inngest-devserver" }
+inngest-config = { path = "../inngest-config" }
+inngest-state = { path = "../inngest-state" }
+inngest-queue = { path = "../inngest-queue" }
+inngest-executor = { path = "../inngest-executor" }
+serde = { workspace = true }
+serde_yaml = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+clap = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+sqlx = { workspace = true }
+redis = { workspace = true }
+deadpool-redis = { workspace = true }
+axum = { workspace = true }
+async-trait = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+tower-http = { workspace = true }
+ulid = { workspace = true }
+sysinfo = "0.30"                                      # Cross-platform system information

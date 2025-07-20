@@ -1,0 +1,23 @@
+[package]
+name = "inngest-devserver"
+version = "0.1.0"
+edition = "2021"
+description = "Development server for Inngest"
+
+[dependencies]
+inngest-core = { path = "../inngest-core" }
+inngest-queue = { path = "../inngest-queue" }
+inngest-executor = { path = "../inngest-executor" }
+inngest-state = { path = "../inngest-state" }
+inngest-api = { path = "../inngest-api" }
+chrono = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+tokio = { workspace = true }
+axum = { workspace = true }
+tower = { workspace = true }
+tower-http = { workspace = true }
+tracing = { workspace = true }
+uuid = { workspace = true }
+reqwest = { workspace = true }

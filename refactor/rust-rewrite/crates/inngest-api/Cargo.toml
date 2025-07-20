@@ -1,0 +1,10 @@
+[package]
+name = "inngest-api"
+version = "0.1.0"
+edition = "2021"
+description = "API layer for Inngest"
+
+[dependencies]
+inngest-core = { path = "../inngest-core" }
+serde = { workspace = true }
+anyhow = { workspace = true }

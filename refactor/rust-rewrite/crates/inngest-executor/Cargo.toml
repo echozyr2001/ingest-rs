@@ -1,0 +1,22 @@
+[package]
+name = "inngest-executor"
+version = "0.1.0"
+edition = "2021"
+description = "Execution engine for Inngest functions"
+
+[dependencies]
+inngest-core = { path = "../inngest-core" }
+inngest-queue = { path = "../inngest-queue" }
+inngest-state = { path = "../inngest-state" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+ulid = { workspace = true }
+chrono = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+async-trait = { workspace = true }
+tokio = { workspace = true }
+reqwest = { workspace = true }
+tracing = { workspace = true }
+dashmap = { workspace = true }
