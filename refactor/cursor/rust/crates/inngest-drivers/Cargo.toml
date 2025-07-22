@@ -1,0 +1,8 @@
+[package]
+name = "inngest-drivers"
+version = "0.1.0"
+edition = "2021"
+description = "Execution drivers for Inngest"
+
+[dependencies]
+inngest-core = { path = "../inngest-core" } 

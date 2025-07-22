@@ -1,0 +1,24 @@
+[package]
+name = "inngest-state"
+version = "0.1.0"
+edition = "2021"
+description = "State management for Inngest function execution"
+
+[dependencies]
+inngest-core = { path = "../inngest-core" }
+
+tokio = { version = "1.35", features = ["full"] }
+async-trait = "0.1.77"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+chrono = { version = "0.4", features = ["serde"] }
+redis = { version = "0.24", features = ["tokio-comp"] }
+thiserror = "1.0"
+anyhow = "1.0"
+tracing = "0.1"
+uuid = { version = "1.6", features = ["v4", "serde"] }
+ulid = { version = "1.1", features = ["serde"] }
+
+[dev-dependencies]
+pretty_assertions = "1.4"
+tokio-test = "0.4" 

@@ -1,0 +1,9 @@
+[package]
+name = "inngest-pubsub"
+version = "0.1.0"
+edition = "2021"
+description = "PubSub system for Inngest"
+
+[dependencies]
+inngest-core = { path = "../inngest-core" }
+async-trait = "0.1" 

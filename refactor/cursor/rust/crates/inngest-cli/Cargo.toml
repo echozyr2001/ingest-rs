@@ -1,0 +1,28 @@
+[package]
+name = "inngest-cli"
+version = "0.1.0"
+edition = "2021"
+description = "Inngest CLI tool"
+
+[[bin]]
+name = "inngest"
+path = "src/main.rs"
+
+[dependencies]
+inngest-core = { path = "../inngest-core" }
+inngest-config = { path = "../inngest-config" }
+inngest-api = { path = "../inngest-api" }
+inngest-devserver = { path = "../inngest-devserver" }
+
+clap = { version = "4.4", features = ["derive", "env"] }
+tokio = { version = "1.35", features = ["full"] }
+async-trait = "0.1.77"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+anyhow = "1.0"
+thiserror = "1.0"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[dev-dependencies]
+pretty_assertions = "1.4" 
