@@ -1,111 +1,65 @@
-//! Core types and traits for Inngest
+//! Core data structures and traits for Inngest
 //!
-//! This crate provides the fundamental types, traits, and error handling
-//! that are used throughout the Inngest system.
+//! This crate contains the fundamental types and interfaces used throughout
+//! the Inngest system. All other crates depend on this one.
 
 pub mod error;
 pub mod event;
-pub mod traits;
+pub mod function;
+pub mod identifier;
+pub mod metadata;
+pub mod queue;
+pub mod state;
 
-// Re-export commonly used types
+// Re-export core types for convenience
 pub use error::{Error, Result};
-pub use event::{Event, InngestMetadata, TrackedEvent};
-pub use traits::{EventHandler, QueueManager, StateManager};
+pub use event::Event;
+pub use function::Function;
+pub use identifier::Identifier;
+pub use metadata::Metadata;
 
-// Re-export external types that are used frequently
-pub use chrono::{DateTime, Utc};
-pub use ulid::Ulid;
-pub use uuid::Uuid;
+/// Common traits used throughout the system
+pub mod traits {
+    use async_trait::async_trait;
 
-// Function-related types
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct Function {
-    pub id: Uuid,
-    pub name: String,
-    pub triggers: Vec<Trigger>,
-    pub steps: Vec<Step>,
-    pub concurrency: Option<ConcurrencyConfig>,
-}
-
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct Trigger {
-    pub event: String,
-    pub expression: Option<String>,
-}
-
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct Step {
-    pub id: String,
-    pub name: String,
-    pub uri: String,
-}
-
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct ConcurrencyConfig {
-    pub limit: u32,
-    pub scope: String,
-}
-
-// Basic types that other crates might need
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct StateIdentifier {
-    pub workflow_id: String,
-    pub run_id: String,
-}
-
-impl StateIdentifier {
-    pub fn new(workflow_id: String, run_id: String) -> Self {
-        Self {
-            workflow_id,
-            run_id,
-        }
+    /// Base trait for all services that can be started and stopped
+    #[async_trait]
+    pub trait Service: Send + Sync {
+        async fn start(&self) -> crate::Result<()>;
+        async fn stop(&self) -> crate::Result<()>;
+        fn name(&self) -> &str;
     }
+
+    /// Trait for components that can be cloned cheaply (typically Arc-wrapped)
+    pub trait CloneService: Service + Clone {}
 }
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct ExecutionContext {
-    pub function_id: String,
-    pub run_id: String,
-    pub step_id: String,
-    pub attempt: u32,
-    pub state: StateIdentifier,
+/// Common constants used throughout the system
+pub mod constants {
+    pub const DEFAULT_TIMEOUT_MS: u64 = 30_000;
+    pub const MAX_EVENT_SIZE: usize = 512 * 1024; // 512KB
+    pub const MAX_STEP_OUTPUT_SIZE: usize = 10 * 1024 * 1024; // 10MB
+
+    // Event names
+    pub const EVENT_RECEIVED_NAME: &str = "inngest/events.received";
+    pub const FN_FAILED_NAME: &str = "inngest/function.failed";
+    pub const FN_FINISHED_NAME: &str = "inngest/function.finished";
+    pub const FN_CANCELLED_NAME: &str = "inngest/function.cancelled";
+    pub const FN_INVOKE_NAME: &str = "inngest/function.invoke";
+    pub const FN_CRON_NAME: &str = "inngest/scheduled.timer";
+
+    // Internal prefixes
+    pub const INTERNAL_NAME_PREFIX: &str = "inngest/";
+    pub const INNGEST_EVENT_DATA_PREFIX: &str = "inngest";
+    pub const INVOKE_CORRELATION_ID: &str = "correlation_id";
 }
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct ExecutionResult {
-    pub status: ExecutionStatus,
-    pub output: Option<serde_json::Value>,
-    pub error: Option<String>,
-    pub retry_at: Option<DateTime<Utc>>,
-}
+/// Version information
+pub mod version {
+    pub const VERSION: &str = env!("CARGO_PKG_VERSION");
+    pub const GIT_HASH: &str = "unknown";
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
-pub enum ExecutionStatus {
-    Pending,
-    Running,
-    Completed,
-    Failed,
-    Cancelled,
-    Waiting,
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_basic_types() {
-        let event = Event {
-            name: "test.event".to_string(),
-            data: serde_json::json!({"key": "value"}),
-            user: None,
-            id: Some("test-id".to_string()),
-            ulid: Ulid::new(),
-            timestamp: Some(chrono::Utc::now().timestamp_millis()),
-            version: Some("2023-05-15".to_string()),
-        };
-
-        assert_eq!(event.name, "test.event");
-        assert!(event.data.is_object());
+    pub fn print() -> String {
+        format!("{VERSION}-dev")
     }
 }

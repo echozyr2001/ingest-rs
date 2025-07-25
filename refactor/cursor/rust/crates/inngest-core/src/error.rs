@@ -1,280 +1,273 @@
-//! Error types for Inngest
-//!
-//! This module defines all the error types used throughout the Inngest system,
-//! providing a unified error handling approach.
+//! Error types and result handling for Inngest
 
 use thiserror::Error;
 
-/// The main error type for Inngest operations
-#[derive(Error, Debug)]
+/// Result type alias for Inngest operations
+pub type Result<T> = std::result::Result<T, Error>;
+
+/// Main error type for Inngest operations
+#[derive(Debug, Error)]
 pub enum Error {
-    /// Configuration-related errors
     #[error("Configuration error: {0}")]
     Config(#[from] ConfigError),
 
-    /// Event-related errors
-    #[error("Event error: {0}")]
-    Event(#[from] EventError),
+    #[error("State management error: {0}")]
+    State(#[from] StateError),
 
-    /// Function execution errors
+    #[error("Queue operation error: {0}")]
+    Queue(#[from] QueueError),
+
     #[error("Execution error: {0}")]
     Execution(#[from] ExecutionError),
 
-    /// State management errors
-    #[error("State error: {0}")]
-    State(#[from] StateError),
+    #[error("Connect protocol error: {0}")]
+    Connect(#[from] ConnectError),
 
-    /// Queue-related errors
-    #[error("Queue error: {0}")]
-    Queue(#[from] QueueError),
-
-    /// Network/HTTP errors
-    #[error("Network error: {0}")]
-    Network(String),
-
-    /// Serialization/deserialization errors
     #[error("Serialization error: {0}")]
     Serialization(#[from] serde_json::Error),
 
-    /// Database errors
     #[error("Database error: {0}")]
     Database(String),
 
-    /// Redis errors
     #[error("Redis error: {0}")]
     Redis(String),
 
-    /// Generic internal errors
-    #[error("Internal error: {0}")]
-    Internal(String),
+    #[error("HTTP error: {0}")]
+    Http(String),
 
-    /// Invalid data error
-    #[error("Invalid data: {0}")]
-    InvalidData(String),
+    #[error("WebSocket error: {0}")]
+    WebSocket(String),
 
-    /// Invalid configuration error
-    #[error("Invalid configuration: {0}")]
-    InvalidConfiguration(String),
+    #[error("I/O error: {0}")]
+    Io(#[from] std::io::Error),
 
-    /// Concurrency limit error
-    #[error("Concurrency limit: {0}")]
-    ConcurrencyLimit(String),
+    #[error("Invalid input: {message}")]
+    InvalidInput { message: String },
 
-    /// Invalid input or parameters
-    #[error("Invalid input: {0}")]
-    InvalidInput(String),
+    #[error("Not found: {resource}")]
+    NotFound { resource: String },
 
-    /// Resource not found
-    #[error("Not found: {0}")]
-    NotFound(String),
+    #[error("Conflict: {message}")]
+    Conflict { message: String },
 
-    /// Operation not permitted
-    #[error("Permission denied: {0}")]
-    PermissionDenied(String),
-
-    /// Resource already exists
-    #[error("Already exists: {0}")]
-    AlreadyExists(String),
-
-    /// Timeout errors
-    #[error("Timeout: {0}")]
-    Timeout(String),
-}
-
-/// Configuration-specific errors
-#[derive(Error, Debug)]
-pub enum ConfigError {
-    #[error("Invalid configuration: {0}")]
-    Invalid(String),
-
-    #[error("Missing required field: {0}")]
-    MissingField(String),
-
-    #[error("Failed to load config: {0}")]
-    LoadError(String),
-
-    #[error("Validation failed: {0}")]
-    Validation(String),
-}
-
-/// Event-related errors
-#[derive(Error, Debug)]
-pub enum EventError {
-    #[error("Invalid event format: {0}")]
-    InvalidFormat(String),
-
-    #[error("Event validation failed: {0}")]
-    Validation(String),
-
-    #[error("Event too large: {size} bytes (max: {max} bytes)")]
-    TooLarge { size: usize, max: usize },
-
-    #[error("Invalid event name: {0}")]
-    InvalidName(String),
-
-    #[error("Missing required field: {0}")]
-    MissingField(String),
-}
-
-/// Function execution errors
-#[derive(Error, Debug)]
-pub enum ExecutionError {
-    #[error("Function not found: {0}")]
-    FunctionNotFound(String),
-
-    #[error("Step execution failed: {step} - {error}")]
-    StepFailed { step: String, error: String },
-
-    #[error("Function timeout after {duration_ms}ms")]
+    #[error("Timeout after {duration_ms}ms")]
     Timeout { duration_ms: u64 },
 
-    #[error("Maximum retries exceeded: {attempts}")]
-    MaxRetriesExceeded { attempts: u32 },
-
-    #[error("Function cancelled: {reason}")]
-    Cancelled { reason: String },
-
-    #[error("Runtime error: {0}")]
-    Runtime(String),
-
-    #[error("Driver error: {0}")]
-    Driver(String),
+    #[error("Internal error: {message}")]
+    Internal { message: String },
 }
 
-/// State management errors
-#[derive(Error, Debug)]
+#[derive(Debug, Error)]
+pub enum ConfigError {
+    #[error("Missing required configuration: {key}")]
+    MissingRequired { key: String },
+
+    #[error("Invalid configuration value for {key}: {value}")]
+    InvalidValue { key: String, value: String },
+
+    #[error("Configuration file error: {0}")]
+    File(#[from] std::io::Error),
+}
+
+/// Generic state management errors - high-level abstraction
+/// Specific implementations can convert their detailed errors to these variants
+#[derive(Debug, Error)]
 pub enum StateError {
-    #[error("State not found: {run_id}")]
-    NotFound { run_id: String },
+    #[error("State not found: {identifier}")]
+    NotFound { identifier: String },
 
-    #[error("Invalid state identifier: {0}")]
-    InvalidIdentifier(String),
+    #[error("State already exists")]
+    AlreadyExists,
 
-    #[error("State conflict: {0}")]
-    Conflict(String),
+    #[error("Invalid state operation: {message}")]
+    InvalidOperation { message: String },
 
-    #[error("State corruption detected: {0}")]
-    Corruption(String),
+    #[error("State too large: {size} bytes")]
+    TooLarge { size: usize },
 
-    #[error("State size limit exceeded: {size} bytes")]
-    SizeLimit { size: usize },
+    #[error("Concurrent modification detected")]
+    ConcurrentModification,
 
-    #[error("Idempotency key already exists: {key}")]
-    IdempotencyExists { key: String },
+    #[error("Connection error: {message}")]
+    Connection { message: String },
+
+    #[error("Operation timeout: {operation}")]
+    Timeout { operation: String },
+
+    #[error("Serialization error: {message}")]
+    Serialization { message: String },
+
+    #[error("Internal error: {message}")]
+    Internal { message: String },
 }
 
-/// Queue-related errors
-#[derive(Error, Debug)]
+impl StateError {
+    /// Get error code for categorization
+    pub fn code(&self) -> &'static str {
+        match self {
+            StateError::NotFound { .. } => "STATE_NOT_FOUND",
+            StateError::AlreadyExists => "STATE_ALREADY_EXISTS",
+            StateError::InvalidOperation { .. } => "INVALID_STATE_OPERATION",
+            StateError::TooLarge { .. } => "STATE_TOO_LARGE",
+            StateError::ConcurrentModification => "CONCURRENT_MODIFICATION",
+            StateError::Connection { .. } => "CONNECTION_ERROR",
+            StateError::Timeout { .. } => "TIMEOUT_ERROR",
+            StateError::Serialization { .. } => "SERIALIZATION_ERROR",
+            StateError::Internal { .. } => "INTERNAL_ERROR",
+        }
+    }
+
+    /// Check if this error is retryable
+    pub fn is_retryable(&self) -> bool {
+        matches!(
+            self,
+            StateError::Connection { .. }
+                | StateError::Timeout { .. }
+                | StateError::ConcurrentModification
+        )
+    }
+}
+
+#[derive(Debug, Error)]
 pub enum QueueError {
-    #[error("Queue item not found: {0}")]
-    ItemNotFound(String),
+    #[error("Queue is full")]
+    Full,
 
-    #[error("Queue shard unavailable: {0}")]
-    ShardUnavailable(String),
+    #[error("Queue item not found: {id}")]
+    ItemNotFound { id: String },
 
-    #[error("Queue full: {0}")]
-    QueueFull(String),
+    #[error("Invalid queue configuration")]
+    InvalidConfiguration,
 
-    #[error("Invalid queue item: {0}")]
-    InvalidItem(String),
+    #[error("Lease expired for item: {id}")]
+    LeaseExpired { id: String },
 
-    #[error("Lease expired: {0}")]
-    LeaseExpired(String),
+    #[error("Concurrency limit exceeded")]
+    ConcurrencyLimitExceeded,
+
+    #[error("Rate limit exceeded")]
+    RateLimitExceeded,
 }
 
-/// Network/HTTP errors
-#[derive(Error, Debug)]
-pub enum NetworkError {
-    #[error("HTTP request failed: {status} - {message}")]
-    Http { status: u16, message: String },
+#[derive(Debug, Error)]
+pub enum ExecutionError {
+    #[error("Function not found: {id}")]
+    FunctionNotFound { id: String },
 
-    #[error("Connection timeout")]
-    Timeout,
+    #[error("Execution timeout after {duration_ms}ms")]
+    Timeout { duration_ms: u64 },
 
-    #[error("Connection refused: {0}")]
-    ConnectionRefused(String),
+    #[error("Step failed: {step_id}")]
+    StepFailed { step_id: String },
 
-    #[error("Invalid URL: {0}")]
-    InvalidUrl(String),
+    #[error("Invalid step configuration")]
+    InvalidStepConfiguration,
 
-    #[error("Request body too large: {size} bytes")]
-    RequestTooLarge { size: usize },
+    #[error("Driver error: {driver}")]
+    Driver { driver: String },
+
+    #[error("Retry limit exceeded")]
+    RetryLimitExceeded,
 }
 
-/// Convenience result type
-pub type Result<T> = std::result::Result<T, Error>;
+#[derive(Debug, Error)]
+pub enum ConnectError {
+    #[error("Connection not found: {id}")]
+    ConnectionNotFound { id: String },
+
+    #[error("Authentication failed")]
+    AuthenticationFailed,
+
+    #[error("Protocol violation: {message}")]
+    ProtocolViolation { message: String },
+
+    #[error("Message too large: {size} bytes")]
+    MessageTooLarge { size: usize },
+
+    #[error("Gateway unavailable")]
+    GatewayUnavailable,
+}
 
 impl Error {
-    /// Check if the error is retryable
+    /// Check if this error is retryable
     pub fn is_retryable(&self) -> bool {
-        match self {
-            Error::Network(_) => true, // Network errors are generally retryable
-            Error::Redis(_) => true,
-            Error::Database(_) => true,
-            Error::Queue(QueueError::ShardUnavailable(_)) => true,
-            Error::Execution(ExecutionError::Timeout { .. }) => true,
-            Error::Timeout(_) => true,
-            _ => false,
-        }
+        matches!(
+            self,
+            Error::Queue(QueueError::ConcurrencyLimitExceeded)
+                | Error::Queue(QueueError::RateLimitExceeded)
+                | Error::State(StateError::Connection { .. })
+                | Error::State(StateError::Timeout { .. })
+                | Error::State(StateError::ConcurrentModification)
+                | Error::Execution(ExecutionError::Timeout { .. })
+                | Error::Connect(ConnectError::GatewayUnavailable)
+                | Error::Database(_)
+                | Error::Redis(_)
+                | Error::Http(_)
+                | Error::Io(_)
+        )
     }
 
-    /// Check if the error should be reported to external monitoring
-    pub fn should_report(&self) -> bool {
-        match self {
-            Error::Internal(_) => true,
-            Error::Database(_) => true,
-            Error::Redis(_) => true,
-            Error::Execution(ExecutionError::Runtime(_)) => true,
-            _ => false,
-        }
-    }
-
-    /// Get error code for structured logging
-    pub fn error_code(&self) -> &'static str {
+    /// Get the error code for external APIs
+    pub fn code(&self) -> &'static str {
         match self {
             Error::Config(_) => "CONFIG_ERROR",
-            Error::Event(_) => "EVENT_ERROR",
-            Error::Execution(_) => "EXECUTION_ERROR",
-            Error::State(_) => "STATE_ERROR",
-            Error::Queue(_) => "QUEUE_ERROR",
-            Error::Network(_) => "NETWORK_ERROR",
-            Error::Serialization(_) => "SERIALIZATION_ERROR",
-            Error::Database(_) => "DATABASE_ERROR",
-            Error::Redis(_) => "REDIS_ERROR",
-            Error::Internal(_) => "INTERNAL_ERROR",
-            Error::InvalidData(_) => "INVALID_DATA",
-            Error::InvalidConfiguration(_) => "INVALID_CONFIGURATION",
-            Error::ConcurrencyLimit(_) => "CONCURRENCY_LIMIT",
-            Error::InvalidInput(_) => "INVALID_INPUT",
-            Error::NotFound(_) => "NOT_FOUND",
-            Error::PermissionDenied(_) => "PERMISSION_DENIED",
-            Error::AlreadyExists(_) => "ALREADY_EXISTS",
-            Error::Timeout(_) => "TIMEOUT",
+            Error::State(state_error) => state_error.code(),
+            Error::Queue(QueueError::Full) => "QUEUE_FULL",
+            Error::Queue(QueueError::ItemNotFound { .. }) => "QUEUE_ITEM_NOT_FOUND",
+            Error::Queue(QueueError::ConcurrencyLimitExceeded) => "CONCURRENCY_LIMIT_EXCEEDED",
+            Error::Queue(QueueError::RateLimitExceeded) => "RATE_LIMIT_EXCEEDED",
+            Error::Execution(ExecutionError::FunctionNotFound { .. }) => "FUNCTION_NOT_FOUND",
+            Error::Execution(ExecutionError::Timeout { .. }) => "EXECUTION_TIMEOUT",
+            Error::Connect(ConnectError::AuthenticationFailed) => "AUTHENTICATION_FAILED",
+            Error::Connect(ConnectError::GatewayUnavailable) => "GATEWAY_UNAVAILABLE",
+            Error::NotFound { .. } => "NOT_FOUND",
+            Error::Conflict { .. } => "CONFLICT",
+            Error::Timeout { .. } => "TIMEOUT",
+            Error::InvalidInput { .. } => "INVALID_INPUT",
+            _ => "INTERNAL_ERROR",
         }
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+/// Convenience macros for creating errors
+#[macro_export]
+macro_rules! invalid_input {
+    ($msg:expr) => {
+        $crate::Error::InvalidInput {
+            message: $msg.to_string(),
+        }
+    };
+    ($fmt:expr, $($arg:tt)*) => {
+        $crate::Error::InvalidInput {
+            message: format!($fmt, $($arg)*),
+        }
+    };
+}
 
-    #[test]
-    fn test_error_properties() {
-        let timeout_error = Error::Timeout("test timeout".to_string());
-        assert!(timeout_error.is_retryable());
-        assert_eq!(timeout_error.error_code(), "TIMEOUT");
+#[macro_export]
+macro_rules! not_found {
+    ($resource:expr) => {
+        $crate::Error::NotFound {
+            resource: $resource.to_string(),
+        }
+    };
+    ($fmt:expr, $($arg:tt)*) => {
+        $crate::Error::NotFound {
+            resource: format!($fmt, $($arg)*),
+        }
+    };
+}
 
-        let config_error = Error::Config(ConfigError::Invalid("test".to_string()));
-        assert!(!config_error.is_retryable());
-        assert_eq!(config_error.error_code(), "CONFIG_ERROR");
-    }
-
-    #[test]
-    fn test_error_chain() {
-        let event_error = EventError::InvalidFormat("malformed JSON".to_string());
-        let wrapped_error = Error::Event(event_error);
-
-        assert_eq!(wrapped_error.error_code(), "EVENT_ERROR");
-        assert!(!wrapped_error.is_retryable());
-    }
+#[macro_export]
+macro_rules! internal_error {
+    ($msg:expr) => {
+        $crate::Error::Internal {
+            message: $msg.to_string(),
+        }
+    };
+    ($fmt:expr, $($arg:tt)*) => {
+        $crate::Error::Internal {
+            message: format!($fmt, $($arg)*),
+        }
+    };
 }

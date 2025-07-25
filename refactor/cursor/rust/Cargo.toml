@@ -1,84 +1,114 @@
 [workspace]
+resolver = "3"
 members = [
-    "crates/inngest-cli",
     "crates/inngest-core",
-    "crates/inngest-config", 
-    "crates/inngest-events",
-    "crates/inngest-execution",
     "crates/inngest-state",
-    "crates/inngest-queue",
-    "crates/inngest-devtools",
-    "crates/inngest-pubsub",
-    "crates/inngest-drivers",
-    "crates/inngest-api",
-    "crates/inngest-cqrs",
-    "crates/inngest-devserver",
-    "crates/inngest-tracing",
-    "crates/inngest-utils",
+    # TODO: Add other crates as they are implemented
+    # "crates/inngest-queue",
+    # "crates/inngest-executor",
+    # "crates/inngest-api",
+    # "crates/inngest-connect",
+    # "crates/inngest-runner",
+    # "crates/inngest-cqrs",
+    # "crates/inngest-config",
+    # "crates/inngest-devserver",
+    # "crates/inngest-cli",
+    # "libs/redis-scripts",
+    # "libs/proto-gen",
+    # "libs/testing-utils",
 ]
-resolver = "2"
 
 [workspace.package]
 version = "0.1.0"
-edition = "2021"
-rust-version = "1.75.0"
-authors = ["Inngest Team"]
-license = "Apache-2.0"
-repository = "https://github.com/inngest/inngest"
-description = "Reliable workflows, durable execution"
+edition = "2024"
+license = "MIT"
+rust-version = "1.88"
 
 [workspace.dependencies]
-# Async runtime
-tokio = { version = "1.35", features = ["full"] }
-async-trait = "0.1.77"
-futures = "0.3.30"
+# Core dependencies
+tokio = { version = "1.40", features = ["full"] }
+tokio-util = { version = "0.7", features = ["full"] }
+tokio-stream = { version = "0.1" }
+
+# HTTP and networking
+axum = { version = "0.8", features = ["json", "headers", "tower-log", "tracing"] }
+axum-extra = { version = "0.10", features = ["typed-header"] }
+tower = { version = "0.5", features = ["full"] }
+tower-http = { version = "0.6", features = ["cors", "trace", "compression"] }
+hyper = { version = "1.6", features = ["full"] }
+reqwest = { version = "0.12", features = ["json", "stream"] }
+
+# WebSocket
+tokio-tungstenite = { version = "0.27", features = ["native-tls"] }
+
+# Database
+sqlx = { version = "0.8", features = ["runtime-tokio", "postgres", "sqlite", "uuid", "chrono", "json"] }
+
+# Redis
+fred = { version = "10.0", features = ["enable-rustls"] }
 
 # Serialization
 serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-prost = "0.12"
-prost-types = "0.12"
+serde_json = { version = "1.0" }
 
-# Networking
-reqwest = { version = "0.11", features = ["json", "stream"] }
-axum = { version = "0.7", features = ["json", "headers"] }
-tower = { version = "0.4", features = ["full"] }
-tower-http = { version = "0.5", features = ["cors", "trace", "compression"] }
-hyper = { version = "1.0", features = ["full"] }
+# Protobuf
+prost = "0.14"
+prost-types = "0.14"
+tonic = { version = "0.13", features = ["tls"] }
 
-# Database and Storage
-sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "sqlite", "postgres", "chrono", "uuid", "json"] }
-redis = { version = "0.24", features = ["tokio-comp", "connection-manager"] }
-
-# CLI and Configuration
-clap = { version = "4.4", features = ["derive", "env"] }
-config = "0.14"
-toml = "0.8"
-
-# Utilities
-uuid = { version = "1.6", features = ["v4", "serde"] }
-ulid = { version = "1.1", features = ["serde"] }
+# IDs and time
+uuid = { version = "1.17", features = ["v4", "v7", "serde"] }
+ulid = { version = "1.2", features = ["serde"] }
 chrono = { version = "0.4", features = ["serde"] }
-thiserror = "1.0"
-anyhow = "1.0"
 
-# Observability
+# Error handling
+anyhow = "1.0"
+thiserror = "2.0"
+
+# Configuration
+config = "0.15"
+
+# Logging and tracing
 tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-metrics = "0.22"
-metrics-prometheus = "0.6"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+
+# Async utilities
+futures = "0.3"
+futures-util = "0.3"
+
+# Data structures
+dashmap = "6.1"
+parking_lot = "0.12"
+bytes = "1.10"
+
+# Hashing and crypto
+sha1 = "0.10"
+sha2 = "0.10"
+xxhash-rust = { version = "0.8", features = ["xxh64"] }
+
+# Base64 for event handling
+base64 = "0.22"
+
+# Async traits
+async-trait = "0.1"
 
 # Testing
-criterion = { version = "0.5", features = ["html_reports"] }
-testcontainers = "0.15"
-mockall = "0.12"
+tokio-test = "0.4"
 pretty_assertions = "1.4"
-insta = "1.34"
+
+# Workspace crates
+inngest-core = { path = "crates/inngest-core" }
+inngest-state = { path = "crates/inngest-state" }
+
+[profile.dev]
+opt-level = 0
+debug = true
 
 [profile.release]
-lto = "thin"
+opt-level = 3
+lto = true
 codegen-units = 1
 panic = "abort"
 
-[profile.dev.package.sqlx-macros]
-opt-level = 3 
+[profile.test]
+opt-level = 1 

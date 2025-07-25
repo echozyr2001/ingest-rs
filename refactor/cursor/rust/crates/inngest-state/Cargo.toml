@@ -1,24 +1,49 @@
 [package]
 name = "inngest-state"
 version = "0.1.0"
-edition = "2021"
-description = "State management for Inngest function execution"
+edition = "2024"
+description = "State management system for Inngest with Redis backend"
 
 [dependencies]
-inngest-core = { path = "../inngest-core" }
+# Core dependencies
+inngest-core = { workspace = true }
 
-tokio = { version = "1.35", features = ["full"] }
-async-trait = "0.1.77"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-chrono = { version = "0.4", features = ["serde"] }
-redis = { version = "0.24", features = ["tokio-comp"] }
-thiserror = "1.0"
-anyhow = "1.0"
-tracing = "0.1"
-uuid = { version = "1.6", features = ["v4", "serde"] }
-ulid = { version = "1.1", features = ["serde"] }
+# Async runtime
+tokio = { workspace = true }
+futures = { workspace = true }
+futures-util = { workspace = true }
+
+# Redis client
+fred = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# IDs and time
+uuid = { workspace = true }
+ulid = { workspace = true }
+chrono = { workspace = true }
+
+# Error handling
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+
+# Async traits
+async-trait = { workspace = true }
+
+# Logging and tracing
+tracing = { workspace = true }
+
+# Data structures
+dashmap = { workspace = true }
+parking_lot = { workspace = true }
+bytes = { workspace = true }
+
+# Hashing
+sha1 = { workspace = true }
+sha2 = { workspace = true }
 
 [dev-dependencies]
-pretty_assertions = "1.4"
-tokio-test = "0.4" 
+tokio-test = { workspace = true }
+pretty_assertions = { workspace = true } 

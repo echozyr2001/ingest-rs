@@ -1,8 +1,0 @@
-[package]
-name = "inngest-cqrs"
-version = "0.1.0"
-edition = "2021"
-description = "CQRS data layer for Inngest"
-
-[dependencies]
-inngest-core = { path = "../inngest-core" } 

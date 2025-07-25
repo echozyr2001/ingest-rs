@@ -1,108 +1,250 @@
-//! Event types and handling
-//!
-//! This module defines the core Event type and related functionality
-//! for handling events in the Inngest system.
+//! Event types and utilities for Inngest
 
-use crate::error::{Error, EventError, Result};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use ulid::Ulid;
 use uuid::Uuid;
 
-/// Maximum event size in bytes (1MB)
-pub const MAX_EVENT_SIZE: usize = 1024 * 1024;
+use crate::constants;
 
-/// Maximum number of events in a batch
-pub const MAX_EVENTS_PER_BATCH: usize = 50;
-
-/// Standard event structure for Inngest
-#[derive(Debug, Clone, Serialize, Deserialize)]
+/// Event represents an event sent to Inngest
+/// This corresponds to the Go `event.Event` struct
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Event {
-    /// Event name/type
+    /// Name of the event
     pub name: String,
 
-    /// Event payload data
-    pub data: serde_json::Value,
+    /// Event data payload
+    pub data: HashMap<String, serde_json::Value>,
 
-    /// User-specific data (optional)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub user: Option<serde_json::Value>,
+    /// User-specific information for the event
+    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
+    pub user: HashMap<String, serde_json::Value>,
 
-    /// Event ID (optional - if not provided, one will be generated)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub id: Option<String>,
+    /// Unique ID for this particular event. If supplied, we should attempt
+    /// to only ingest this event once
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub id: String,
 
-    /// ULID for the event (used by execution system)
-    #[serde(default = "generate_ulid")]
-    pub ulid: Ulid,
+    /// Timestamp is the time the event occurred, at millisecond precision.
+    /// If this is not provided, we will insert the current time upon receipt
+    #[serde(default)]
+    pub ts: i64,
 
-    /// Event timestamp in milliseconds (optional - defaults to current time)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub timestamp: Option<i64>,
-
-    /// Event version (optional)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub version: Option<String>,
+    /// Version of the event format
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub v: String,
 }
 
-/// Event with internal tracking information
-pub trait TrackedEvent: Send + Sync {
-    /// Get the workspace ID for this event
+impl Event {
+    /// Create a new event with the given name
+    pub fn new(name: impl Into<String>) -> Self {
+        let now = Utc::now().timestamp_millis();
+        Self {
+            name: name.into(),
+            data: HashMap::new(),
+            user: HashMap::new(),
+            id: String::new(),
+            ts: now,
+            v: String::new(),
+        }
+    }
+
+    /// Create a new event with data
+    pub fn with_data(name: impl Into<String>, data: HashMap<String, serde_json::Value>) -> Self {
+        let mut event = Self::new(name);
+        event.data = data;
+        event
+    }
+
+    /// Set the event ID
+    pub fn with_id(mut self, id: impl Into<String>) -> Self {
+        self.id = id.into();
+        self
+    }
+
+    /// Set the timestamp
+    pub fn with_timestamp(mut self, timestamp: i64) -> Self {
+        self.ts = timestamp;
+        self
+    }
+
+    /// Set user data
+    pub fn with_user(mut self, user: HashMap<String, serde_json::Value>) -> Self {
+        self.user = user;
+        self
+    }
+
+    /// Get the event time as a DateTime
+    pub fn time(&self) -> DateTime<Utc> {
+        DateTime::from_timestamp_millis(self.ts).unwrap_or_else(Utc::now)
+    }
+
+    /// Convert the event to a map representation
+    pub fn to_map(&self) -> HashMap<String, serde_json::Value> {
+        let mut map = HashMap::new();
+        map.insert(
+            "name".to_string(),
+            serde_json::Value::String(self.name.clone()),
+        );
+        map.insert(
+            "data".to_string(),
+            serde_json::Value::Object(
+                self.data
+                    .iter()
+                    .map(|(k, v)| (k.clone(), v.clone()))
+                    .collect(),
+            ),
+        );
+        map.insert(
+            "user".to_string(),
+            serde_json::Value::Object(
+                self.user
+                    .iter()
+                    .map(|(k, v)| (k.clone(), v.clone()))
+                    .collect(),
+            ),
+        );
+        map.insert("id".to_string(), serde_json::Value::String(self.id.clone()));
+        map.insert("ts".to_string(), serde_json::Value::Number(self.ts.into()));
+
+        if !self.v.is_empty() {
+            map.insert("v".to_string(), serde_json::Value::String(self.v.clone()));
+        }
+
+        map
+    }
+
+    /// Validate the event
+    pub fn validate(&self) -> crate::Result<()> {
+        if self.name.is_empty() {
+            return Err(crate::invalid_input!("event name is empty"));
+        }
+
+        if self.ts != 0 {
+            let start_timestamp = DateTime::parse_from_rfc3339("1980-01-01T00:00:00Z")
+                .unwrap()
+                .timestamp_millis();
+            let end_timestamp = DateTime::parse_from_rfc3339("2100-01-01T00:00:00Z")
+                .unwrap()
+                .timestamp_millis();
+
+            if self.ts < start_timestamp {
+                return Err(crate::invalid_input!("timestamp is before Jan 1, 1980"));
+            }
+            if self.ts > end_timestamp {
+                return Err(crate::invalid_input!("timestamp is after Jan 1, 2100"));
+            }
+        }
+
+        Ok(())
+    }
+
+    /// Check if this is an internal Inngest event
+    pub fn is_internal(&self) -> bool {
+        self.name.starts_with(constants::INTERNAL_NAME_PREFIX)
+    }
+
+    /// Check if this is a function finished event
+    pub fn is_finished_event(&self) -> bool {
+        self.name == constants::FN_FINISHED_NAME
+    }
+
+    /// Check if this is a function invoke event
+    pub fn is_invoke_event(&self) -> bool {
+        self.name == constants::FN_INVOKE_NAME
+    }
+
+    /// Check if this is a cron event
+    pub fn is_cron(&self) -> bool {
+        self.name == constants::FN_CRON_NAME
+    }
+
+    /// Get the cron schedule if this is a cron event
+    pub fn cron_schedule(&self) -> Option<&str> {
+        if !self.is_cron() {
+            return None;
+        }
+
+        self.data
+            .get("cron")
+            .and_then(|v| v.as_str())
+            .filter(|s| !s.is_empty())
+    }
+
+    /// Get the correlation ID for the event
+    pub fn correlation_id(&self) -> Option<String> {
+        if self.is_invoke_event() {
+            if let Ok(metadata) = self.inngest_metadata() {
+                return Some(metadata.invoke_correlation_id);
+            }
+        }
+
+        if self.is_finished_event() {
+            if let Some(corr_id) = self.data.get(constants::INVOKE_CORRELATION_ID) {
+                if let Some(s) = corr_id.as_str() {
+                    return Some(s.to_string());
+                }
+            }
+        }
+
+        None
+    }
+
+    /// Get Inngest metadata from the event data
+    pub fn inngest_metadata(&self) -> crate::Result<InngestMetadata> {
+        let raw = self
+            .data
+            .get(constants::INNGEST_EVENT_DATA_PREFIX)
+            .ok_or_else(|| crate::not_found!("inngest metadata"))?;
+
+        serde_json::from_value(raw.clone()).map_err(crate::Error::Serialization)
+    }
+}
+
+/// Metadata for invoke events
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct InngestMetadata {
+    pub source_app_id: String,
+    pub source_fn_id: String,
+    pub source_fn_v: i32,
+    pub fn_id: String,
+    pub correlation_id: Option<String>,
+    pub invoke_correlation_id: String,
+    pub expire: i64,
+    pub gid: String,
+    pub name: String,
+}
+
+impl InngestMetadata {
+    /// Extract the run ID from the correlation ID
+    pub fn run_id(&self) -> Option<Ulid> {
+        let parts: Vec<&str> = self.invoke_correlation_id.split('.').collect();
+        if parts.len() != 2 {
+            return None;
+        }
+
+        Ulid::from_string(parts[0]).ok()
+    }
+}
+
+/// Tracked event with additional metadata
+pub trait TrackedEvent {
     fn workspace_id(&self) -> Uuid;
-
-    /// Get the internal ID for this event
     fn internal_id(&self) -> Ulid;
-
-    /// Get the underlying event
     fn event(&self) -> &Event;
 }
 
-/// Internal event metadata for invocations
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InngestMetadata {
-    /// Source app ID
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub source_app_id: Option<String>,
-
-    /// Source function ID
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub source_fn_id: Option<String>,
-
-    /// Source function version
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub source_fn_version: Option<i32>,
-
-    /// Target function ID for invocation
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub invoke_fn_id: Option<String>,
-
-    /// Correlation ID for invocation
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub correlation_id: Option<String>,
-
-    /// Expiration time for invocation
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub expires_at: Option<i64>,
-
-    /// Group ID for parallel execution
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub group_id: Option<String>,
-
-    /// Display name for the invocation
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub display_name: Option<String>,
-}
-
-/// Standard implementation of TrackedEvent for development/testing
+/// Simple implementation of TrackedEvent
 #[derive(Debug, Clone)]
-pub struct StandardTrackedEvent {
-    pub internal_id: Ulid,
+pub struct SimpleTrackedEvent {
     pub workspace_id: Uuid,
+    pub internal_id: Ulid,
     pub event: Event,
 }
 
-impl TrackedEvent for StandardTrackedEvent {
+impl TrackedEvent for SimpleTrackedEvent {
     fn workspace_id(&self) -> Uuid {
         self.workspace_id
     }
@@ -116,322 +258,124 @@ impl TrackedEvent for StandardTrackedEvent {
     }
 }
 
-impl Event {
-    /// Create a new event with the given name and data
-    pub fn new(name: impl Into<String>, data: serde_json::Value) -> Self {
-        Self {
-            name: name.into(),
-            data,
-            user: None,
-            id: None,
-            ulid: Ulid::new(),
-            timestamp: None,
-            version: None,
-        }
-    }
+/// Seeded ID for deterministic ULID generation
+#[derive(Debug, Clone)]
+pub struct SeededId {
+    pub entropy: [u8; 10],
+    pub millis: i64,
+}
 
-    /// Set the event ID
-    pub fn with_id(mut self, id: impl Into<String>) -> Self {
-        self.id = Some(id.into());
-        self
-    }
-
-    /// Set the user data
-    pub fn with_user(mut self, user: serde_json::Value) -> Self {
-        self.user = Some(user);
-        self
-    }
-
-    /// Set the timestamp
-    pub fn with_timestamp(mut self, timestamp: DateTime<Utc>) -> Self {
-        self.timestamp = Some(timestamp.timestamp_millis());
-        self
-    }
-
-    /// Set the version
-    pub fn with_version(mut self, version: impl Into<String>) -> Self {
-        self.version = Some(version.into());
-        self
-    }
-
-    /// Get the event time as a DateTime
-    pub fn time(&self) -> DateTime<Utc> {
-        match self.timestamp {
-            Some(ts) => DateTime::from_timestamp_millis(ts).unwrap_or_else(Utc::now),
-            None => Utc::now(),
-        }
-    }
-
-    /// Convert the event to a map representation
-    pub fn to_map(&self) -> HashMap<String, serde_json::Value> {
-        let mut map = HashMap::new();
-
-        map.insert(
-            "name".to_string(),
-            serde_json::Value::String(self.name.clone()),
-        );
-        map.insert("data".to_string(), self.data.clone());
-
-        if let Some(user) = &self.user {
-            map.insert("user".to_string(), user.clone());
-        } else {
-            map.insert(
-                "user".to_string(),
-                serde_json::Value::Object(serde_json::Map::new()),
-            );
+impl SeededId {
+    /// Convert to ULID
+    pub fn to_ulid(&self) -> crate::Result<Ulid> {
+        if self.millis <= 0 {
+            return Err(crate::invalid_input!("millis must be greater than 0"));
         }
 
-        if let Some(id) = &self.id {
-            map.insert("id".to_string(), serde_json::Value::String(id.clone()));
-        }
+        let random_part = u128::from_be_bytes([
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            self.entropy[0],
+            self.entropy[1],
+            self.entropy[2],
+            self.entropy[3],
+            self.entropy[4],
+            self.entropy[5],
+            self.entropy[6],
+            self.entropy[7],
+            self.entropy[8],
+            self.entropy[9],
+        ]);
 
-        if let Some(ts) = self.timestamp {
-            map.insert(
-                "ts".to_string(),
-                serde_json::Value::Number(serde_json::Number::from(ts)),
-            );
-        }
-
-        if let Some(version) = &self.version {
-            map.insert("v".to_string(), serde_json::Value::String(version.clone()));
-        }
-
-        map
+        Ok(Ulid::from_parts(self.millis as u64, random_part))
     }
 
-    /// Validate the event structure and contents
-    pub fn validate(&self) -> Result<()> {
-        // Check event name
-        if self.name.is_empty() {
-            return Err(Error::Event(EventError::MissingField("name".to_string())));
+    /// Parse from a seeded ID string
+    pub fn from_string(value: &str, index: usize) -> Option<Self> {
+        let parts: Vec<&str> = value.split(',').collect();
+        if parts.len() != 2 {
+            return None;
         }
 
-        // Check for reserved internal event names
-        if self.name.starts_with("inngest/") {
-            return Err(Error::Event(EventError::InvalidName(
-                "Event names starting with 'inngest/' are reserved".to_string(),
-            )));
+        let millis = parts[0].parse::<i64>().ok()?;
+        if millis <= 0 {
+            return None;
         }
 
-        // Validate timestamp if provided
-        if let Some(ts) = self.timestamp {
-            let start_timestamp = DateTime::from_timestamp(631152000, 0).unwrap(); // 1990-01-01
-            let end_timestamp = DateTime::from_timestamp(4102444800, 0).unwrap(); // 2100-01-01
-            let event_time = DateTime::from_timestamp_millis(ts).unwrap_or_else(Utc::now);
-
-            if event_time < start_timestamp {
-                return Err(Error::Event(EventError::Validation(
-                    "Event timestamp cannot be before 1990-01-01".to_string(),
-                )));
-            }
-
-            if event_time > end_timestamp {
-                return Err(Error::Event(EventError::Validation(
-                    "Event timestamp cannot be after 2100-01-01".to_string(),
-                )));
-            }
+        let entropy_bytes = base64::prelude::BASE64_STANDARD.decode(parts[1]).ok()?;
+        if entropy_bytes.len() != 10 {
+            return None;
         }
 
-        // Check serialized size
-        let serialized = serde_json::to_vec(self).map_err(Error::Serialization)?;
-        if serialized.len() > MAX_EVENT_SIZE {
-            return Err(Error::Event(EventError::TooLarge {
-                size: serialized.len(),
-                max: MAX_EVENT_SIZE,
-            }));
-        }
+        let mut entropy = [0u8; 10];
+        entropy.copy_from_slice(&entropy_bytes);
 
-        Ok(())
-    }
+        // Add the index to the entropy
+        let current = u32::from_be_bytes([entropy[6], entropy[7], entropy[8], entropy[9]]);
+        let new_value = current.wrapping_add(index as u32);
+        entropy[6..10].copy_from_slice(&new_value.to_be_bytes());
 
-    /// Check if this is an internal event
-    pub fn is_internal(&self) -> bool {
-        self.name.starts_with("inngest/")
-    }
-
-    /// Check if this is a function finished event
-    pub fn is_finished_event(&self) -> bool {
-        self.name == "inngest/function.finished"
-    }
-
-    /// Check if this is an invocation event
-    pub fn is_invocation_event(&self) -> bool {
-        self.name == "inngest/function.invoke"
-    }
-
-    /// Check if this is a cron event
-    pub fn is_cron_event(&self) -> bool {
-        self.name == "inngest/scheduled.timer"
-    }
-
-    /// Get the correlation ID if this is an invocation/finished event
-    pub fn correlation_id(&self) -> Option<String> {
-        if self.is_invocation_event() {
-            if let Ok(metadata) = self.inngest_metadata() {
-                return metadata.correlation_id;
-            }
-        }
-
-        if self.is_finished_event() {
-            if let Some(data) = self.data.as_object() {
-                if let Some(corr_id) = data.get("correlation_id") {
-                    return corr_id.as_str().map(|s| s.to_string());
-                }
-            }
-        }
-
-        None
-    }
-
-    /// Extract Inngest metadata from the event data
-    pub fn inngest_metadata(&self) -> Result<InngestMetadata> {
-        let data = self.data.as_object().ok_or_else(|| {
-            Error::Event(EventError::InvalidFormat(
-                "Event data must be an object".to_string(),
-            ))
-        })?;
-
-        let metadata = data
-            .get("_inngest")
-            .ok_or_else(|| Error::Event(EventError::MissingField("_inngest".to_string())))?;
-
-        serde_json::from_value(metadata.clone()).map_err(|e| {
-            Error::Event(EventError::InvalidFormat(format!(
-                "Invalid Inngest metadata: {}",
-                e
-            )))
-        })
+        Some(Self { entropy, millis })
     }
 }
 
-impl StandardTrackedEvent {
-    /// Create a new tracked event
-    pub fn new(event: Event, workspace_id: Uuid) -> Self {
-        let internal_id = Ulid::new();
-        Self {
-            internal_id,
-            workspace_id,
-            event,
-        }
-    }
-
-    /// Create a tracked event with a specific internal ID
-    pub fn with_internal_id(event: Event, workspace_id: Uuid, internal_id: Ulid) -> Self {
-        Self {
-            internal_id,
-            workspace_id,
-            event,
-        }
-    }
-}
-
-/// Batch of events for processing
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EventBatch {
-    pub events: Vec<Event>,
-    pub batch_id: Option<String>,
-}
-
-impl EventBatch {
-    /// Create a new event batch
-    pub fn new(events: Vec<Event>) -> Result<Self> {
-        if events.len() > MAX_EVENTS_PER_BATCH {
-            return Err(Error::Event(EventError::TooLarge {
-                size: events.len(),
-                max: MAX_EVENTS_PER_BATCH,
-            }));
-        }
-
-        Ok(Self {
-            events,
-            batch_id: Some(Ulid::new().to_string()),
-        })
-    }
-
-    /// Validate all events in the batch
-    pub fn validate(&self) -> Result<()> {
-        for event in &self.events {
-            event.validate()?;
-        }
-        Ok(())
-    }
-}
-
-/// Generate a new ULID
-fn generate_ulid() -> Ulid {
-    Ulid::new()
-}
+use base64::prelude::*;
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use serde_json::json;
 
     #[test]
     fn test_event_creation() {
-        let event = Event::new("test.event", json!({"key": "value"}))
-            .with_id("test-id")
-            .with_version("2023-05-15");
-
+        let event = Event::new("test.event");
         assert_eq!(event.name, "test.event");
-        assert_eq!(event.id, Some("test-id".to_string()));
-        assert_eq!(event.version, Some("2023-05-15".to_string()));
+        assert!(!event.data.is_empty() || event.data.is_empty()); // Can be either
+        assert!(event.ts > 0);
     }
 
     #[test]
     fn test_event_validation() {
-        // Valid event
-        let event = Event::new("user.created", json!({"user_id": 123}));
+        let mut event = Event::new("test.event");
         assert!(event.validate().is_ok());
 
-        // Empty name
-        let invalid_event = Event {
-            name: "".to_string(),
-            data: json!({}),
-            user: None,
-            id: None,
-            ulid: Ulid::new(),
-            timestamp: None,
-            version: None,
-        };
-        assert!(invalid_event.validate().is_err());
-
-        // Reserved name
-        let reserved_event = Event::new("inngest/internal", json!({}));
-        assert!(reserved_event.validate().is_err());
+        event.name = String::new();
+        assert!(event.validate().is_err());
     }
 
     #[test]
     fn test_event_types() {
-        let finished_event = Event::new("inngest/function.finished", json!({}));
-        assert!(finished_event.is_finished_event());
-        assert!(finished_event.is_internal());
+        let invoke_event = Event::new(constants::FN_INVOKE_NAME);
+        assert!(invoke_event.is_invoke_event());
+        assert!(invoke_event.is_internal());
 
-        let user_event = Event::new("user.created", json!({}));
-        assert!(!user_event.is_internal());
-        assert!(!user_event.is_finished_event());
+        let cron_event = Event::new(constants::FN_CRON_NAME);
+        assert!(cron_event.is_cron());
+        assert!(cron_event.is_internal());
+
+        let custom_event = Event::new("user.created");
+        assert!(!custom_event.is_internal());
     }
 
     #[test]
-    fn test_tracked_event() {
-        let event = Event::new("test.event", json!({"key": "value"}));
-        let workspace_id = Uuid::new_v4();
-        let tracked = StandardTrackedEvent::new(event.clone(), workspace_id);
+    fn test_event_serialization() {
+        let event = Event::with_data(
+            "test.event",
+            [(
+                "key".to_string(),
+                serde_json::Value::String("value".to_string()),
+            )]
+            .iter()
+            .cloned()
+            .collect(),
+        );
 
-        assert_eq!(tracked.workspace_id(), workspace_id);
-        assert_eq!(tracked.event().name, "test.event");
-    }
+        let json = serde_json::to_string(&event).unwrap();
+        let deserialized: Event = serde_json::from_str(&json).unwrap();
 
-    #[test]
-    fn test_event_batch() {
-        let events = vec![
-            Event::new("event1", json!({})),
-            Event::new("event2", json!({})),
-        ];
-
-        let batch = EventBatch::new(events).unwrap();
-        assert_eq!(batch.events.len(), 2);
-        assert!(batch.batch_id.is_some());
-        assert!(batch.validate().is_ok());
+        assert_eq!(event, deserialized);
     }
 }

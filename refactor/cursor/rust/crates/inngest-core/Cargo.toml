@@ -1,23 +1,38 @@
 [package]
 name = "inngest-core"
 version = "0.1.0"
-edition = "2021"
-description = "Core types and traits for Inngest"
+edition = "2024"
+description = "Core data structures and traits for Inngest"
 
 [dependencies]
-async-trait = "0.1.77"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-uuid = { version = "1.6", features = ["v4", "serde"] }
-ulid = { version = "1.1", features = ["serde"] }
-chrono = { version = "0.4", features = ["serde"] }
-thiserror = "1.0"
-anyhow = "1.0"
-tracing = "0.1"
-sqlx = { version = "0.7", features = ["runtime-tokio-rustls"] }
-redis = { version = "0.24", features = ["tokio-comp"] }
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# IDs and time
+uuid = { workspace = true }
+ulid = { workspace = true }
+chrono = { workspace = true }
+
+# Error handling
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+
+# Async traits
+async-trait = { workspace = true }
+
+# Hashing
+sha1 = { workspace = true }
+sha2 = { workspace = true }
+xxhash-rust = { workspace = true }
+
+# Protobuf
+prost = { workspace = true }
+prost-types = { workspace = true }
+
+# Base64 for event handling
+base64 = { workspace = true }
 
 [dev-dependencies]
-tokio = { version = "1.35", features = ["test-util"] }
-criterion = { version = "0.5", features = ["html_reports"] }
-pretty_assertions = "1.4" 
+tokio-test = { workspace = true }
+pretty_assertions = { workspace = true }
