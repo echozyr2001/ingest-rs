@@ -71,19 +71,19 @@
 ```toml
 [dependencies]
 # 异步运行时
-tokio = { version = "1.40", features = ["full"] }
+tokio = { version = "1.0", features = ["full"] }
 
 # HTTP 服务
-axum = "0.7"
+axum = "0.8"
 
 # 数据库
 sqlx = { version = "0.8", features = ["postgres", "sqlite", "runtime-tokio"] }
 
 # Redis
-fred = { version = "9.0", features = ["tokio-comp"] }
+fred = "10.0"
 
 # WebSocket  
-tokio-tungstenite = "0.21"
+tokio-tungstenite = "0.27"
 
 # 序列化
 serde = { version = "1.0", features = ["derive"] }
@@ -91,7 +91,7 @@ serde_json = "1.0"
 
 # 错误处理
 anyhow = "1.0"
-thiserror = "1.0"
+thiserror = "2.0"
 ```
 
 ### 项目结构
